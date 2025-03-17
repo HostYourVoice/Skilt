@@ -1,0 +1,515 @@
+{
+    "course": {
+      "id": "mobile-email-writing",
+      "title": "Mobile Email Writing Course",
+      "categories": [
+        {
+          "id": "academic",
+          "name": "Academic Communications",
+          "description": "Foundational emails related to academic activities and requests",
+          "minEloRating": 100,
+          "baseEloGain": 25
+        },
+        {
+          "id": "professional",
+          "name": "Professional Networking",
+          "description": "Advanced emails for career development and networking",
+          "minEloRating": 250,
+          "baseEloGain": 40
+        },
+        {
+          "id": "administrative",
+          "name": "Administrative Requests",
+          "description": "Intermediate emails for administrative changes and exceptions",
+          "minEloRating": 175,
+          "baseEloGain": 30
+        }
+      ],
+      "modules": [
+        {
+          "id": "professor-recommendation",
+          "title": "Professor Recommendation Request",
+          "order": 1,
+          "category": "academic",
+          "submissionTemplate": {
+            "subjectLine": {
+              "type": "string",
+              "required": true,
+              "maxLength": 100,
+              "description": "Email subject line",
+              "example": "Recommendation Request for Stanford Summer Research Program"
+            },
+            "body": {
+              "type": "string",
+              "required": true,
+              "maxLength": 2000,
+              "description": "Complete email content including greeting, main content, and signature",
+              "example": "Dear Professor Chen,\n\nI hope this email finds you well. I am writing to request a letter of recommendation for the Stanford Summer Research Program. As a student in your Advanced Biology course last semester (Fall 2024) where I earned an A, I believe you could speak to my research capabilities and academic performance.\n\nBest regards,\nStudent Name"
+            }
+          },
+          "difficulty": {
+            "score": 2,
+            "scale": 5,
+            "factors": [
+              "Formal tone required",
+              "Multiple attachments",
+              "Timeline sensitivity"
+            ],
+            "baseCompletionPoints": 20,
+            "bonusMultiplier": 1.2
+          },
+          "requiredEloRating": 100,
+          "commonMistakes": [
+            {
+              "id": "m1-1",
+              "description": "Sending the request too late (less than 2 weeks before deadline)"
+            },
+            {
+              "id": "m1-2",
+              "description": "Not providing specific details about the program or position being applied to"
+            },
+            {
+              "id": "m1-3",
+              "description": "Failing to mention specific class experiences or projects that demonstrate your capabilities"
+            },
+            {
+              "id": "m1-4",
+              "description": "Not offering alternative formats for the letter submission (online portal, email, physical mail)"
+            }
+          ],
+          "scenario": {
+            "context": "You need a recommendation letter for a summer research program at Stanford University. The deadline is in 3 weeks, and you took Professor Chen's Advanced Biology course last semester, earning an A.",
+            "requirements": [
+              "Your specific connection to the professor",
+              "Program details",
+              "Deadline",
+              "Any materials you're attaching (resume, transcript)"
+            ]
+          },
+          "rubric": {
+            "aiFeedbackPoints": [
+              "Analysis of how well you've established your academic connection and performance",
+              "Evaluation of clarity in program details and timeline presentation",
+              "Assessment of professionalism and courtesy in the request"
+            ],
+            "checklistItems": [
+              {
+                "id": "c1-1",
+                "description": "Mentioned specific course name, semester, and grade"
+              },
+              {
+                "id": "c1-2",
+                "description": "Included clear program deadline and submission method"
+              },
+              {
+                "id": "c1-3",
+                "description": "Attached all referenced documents (resume, transcript)"
+              },
+              {
+                "id": "c1-4",
+                "description": "Provided program name and specific position details"
+              },
+              {
+                "id": "c1-5",
+                "description": "Included a proposed follow-up timeline"
+              }
+            ]
+          }
+        },
+        {
+          "id": "advisor-recommendation",
+          "title": "Academic Advisor Recommendation",
+          "order": 2,
+          "category": "academic",
+          "submissionTemplate": {
+            "subjectLine": {
+              "type": "string",
+              "required": true,
+              "maxLength": 100,
+              "description": "Email subject line",
+              "example": "Thank You and NASA JPL Recommendation Request"
+            },
+            "body": {
+              "type": "string",
+              "required": true,
+              "maxLength": 2000,
+              "description": "Complete email content including gratitude and recommendation request",
+              "example": "Dear Dr. Martinez,\n\nI wanted to express my sincere gratitude for your mentorship over the past two years. Your guidance has been instrumental in my academic journey.\n\nI am applying for the NASA JPL internship and would greatly appreciate a letter of recommendation that highlights our research work together.\n\nBest regards,\nStudent Name"
+            }
+          },
+          "difficulty": {
+            "score": 3,
+            "scale": 5,
+            "factors": [
+              "Personal relationship balance",
+              "Long-term relationship context",
+              "Complex achievement documentation"
+            ],
+            "baseCompletionPoints": 25,
+            "bonusMultiplier": 1.3
+          },
+          "requiredEloRating": 150,
+          "commonMistakes": [
+            {
+              "id": "m2-1",
+              "description": "Forgetting to express gratitude for previous guidance before making the request"
+            },
+            {
+              "id": "m2-2",
+              "description": "Not explaining why you're specifically asking this advisor (vs others)"
+            },
+            {
+              "id": "m2-3",
+              "description": "Not providing a clear timeline for when you need the recommendation"
+            },
+            {
+              "id": "m2-4",
+              "description": "Failing to mention specific achievements or growth under their advisorship"
+            }
+          ],
+          "scenario": {
+            "context": "You've worked with your advisor Dr. Martinez for two years. You're applying for a competitive internship at NASA's Jet Propulsion Laboratory and need a recommendation highlighting your research experience.",
+            "requirements": [
+              "Thanks them for their mentorship",
+              "Requests a recommendation with specific details about the internship"
+            ]
+          },
+          "rubric": {
+            "aiFeedbackPoints": [
+              "Analysis of how effectively you've highlighted your research relationship",
+              "Evaluation of gratitude expression and personal growth demonstration",
+              "Assessment of clarity in internship relevance to your path"
+            ],
+            "checklistItems": [
+              {
+                "id": "c2-1",
+                "description": "Expressed specific examples of valuable mentorship"
+              },
+              {
+                "id": "c2-2",
+                "description": "Included detailed internship program information"
+              },
+              {
+                "id": "c2-3",
+                "description": "Mentioned specific research projects or achievements"
+              },
+              {
+                "id": "c2-4",
+                "description": "Provided clear deadline and submission instructions"
+              },
+              {
+                "id": "c2-5",
+                "description": "Included a graceful 'out' if they're unable to help"
+              }
+            ]
+          }
+        },
+        {
+          "id": "illness-absence",
+          "title": "Illness-Related Absence",
+          "order": 3,
+          "category": "administrative",
+          "submissionTemplate": {
+            "subjectLine": {
+              "type": "string",
+              "required": true,
+              "maxLength": 100,
+              "description": "Email subject line",
+              "example": "Absence Notice - Marketing Strategy Presentation (Feb 20)"
+            },
+            "body": {
+              "type": "string",
+              "required": true,
+              "maxLength": 2000,
+              "description": "Complete email content including situation explanation and makeup plan",
+              "example": "Dear Professor Thompson,\n\nI regret to inform you that I have developed a high fever and will not be able to attend tomorrow's Marketing Strategy presentation. I have already informed my group members and can present my portion next week.\n\nBest regards,\nStudent Name"
+            }
+          },
+          "difficulty": {
+            "score": 2,
+            "scale": 5,
+            "factors": [
+              "Time sensitivity",
+              "Group impact consideration",
+              "Professional discretion"
+            ],
+            "baseCompletionPoints": 15,
+            "bonusMultiplier": 1.1
+          },
+          "requiredEloRating": 175,
+          "commonMistakes": [
+            {
+              "id": "m3-1",
+              "description": "Being too casual or providing unnecessary medical details"
+            },
+            {
+              "id": "m3-2",
+              "description": "Not proposing a plan to catch up on missed work"
+            },
+            {
+              "id": "m3-3",
+              "description": "Waiting too long to notify the professor about the absence"
+            },
+            {
+              "id": "m3-4",
+              "description": "Not acknowledging the impact on team members or class activities"
+            }
+          ],
+          "scenario": {
+            "context": "You've developed a high fever and won't be able to attend tomorrow's important presentation in your Marketing Strategy class.",
+            "requirements": [
+              "Professionally explains your situation",
+              "Proposes a make-up date",
+              "Addresses how you'll handle any group work impacts"
+            ]
+          },
+          "rubric": {
+            "aiFeedbackPoints": [
+              "Analysis of professionalism in explaining the situation",
+              "Evaluation of proactiveness in providing solutions",
+              "Assessment of consideration for group impact"
+            ],
+            "checklistItems": [
+              {
+                "id": "c3-1",
+                "description": "Stated absence timing and duration clearly"
+              },
+              {
+                "id": "c3-2",
+                "description": "Proposed specific make-up presentation date(s)"
+              },
+              {
+                "id": "c3-3",
+                "description": "Outlined plan for group work coordination"
+              },
+              {
+                "id": "c3-4",
+                "description": "Mentioned willingness to provide documentation if needed"
+              },
+              {
+                "id": "c3-5",
+                "description": "Included plan to catch up on missed material"
+              }
+            ]
+          }
+        },
+        {
+          "id": "introduction-request",
+          "title": "Professional Introduction Request",
+          "order": 4,
+          "category": "professional",
+          "submissionTemplate": {
+            "subjectLine": {
+              "type": "string",
+              "required": true,
+              "maxLength": 100,
+              "description": "Email subject line",
+              "example": "Introduction Request - Apple Design Team Connection"
+            },
+            "body": {
+              "type": "string",
+              "required": true,
+              "maxLength": 2000,
+              "description": "Complete email content including research, value proposition, and forwardable introduction",
+              "example": "Dear [Mentor Name],\n\nI noticed your LinkedIn connection with Jane Smith, Head of Design at Apple. I've been following her work on user-centered design principles and would greatly appreciate an introduction to learn more about her career path.\n\nBest regards,\n[Your name]"
+            }
+          },
+          "difficulty": {
+            "score": 4,
+            "scale": 5,
+            "factors": [
+              "Complex networking dynamics",
+              "Research requirements",
+              "Double audience consideration"
+            ],
+            "baseCompletionPoints": 30,
+            "bonusMultiplier": 1.4
+          },
+          "requiredEloRating": 250,
+          "commonMistakes": [
+            {
+              "id": "m4-1",
+              "description": "Not explaining how you found the person you want to be introduced to"
+            },
+            {
+              "id": "m4-2",
+              "description": "Making the request too demanding on the connector's time"
+            },
+            {
+              "id": "m4-3",
+              "description": "Failing to provide a draft introduction message that can be forwarded"
+            },
+            {
+              "id": "m4-4",
+              "description": "Not demonstrating value or mutual benefit in the connection"
+            }
+          ],
+          "scenario": {
+            "context": "You noticed your alumni mentor is connected to the Head of Design at Apple, and you'd love to learn more about their career path.",
+            "requirements": [
+              "Explains your specific interest",
+              "Makes it easy for your mentor to forward/connect",
+              "Shows you've done your research"
+            ]
+          },
+          "rubric": {
+            "aiFeedbackPoints": [
+              "Analysis of how well you've demonstrated your research",
+              "Evaluation of the value proposition for both parties",
+              "Assessment of how easy you've made it for the connector"
+            ],
+            "checklistItems": [
+              {
+                "id": "c4-1",
+                "description": "Explained specific reason for wanting to connect"
+              },
+              {
+                "id": "c4-2",
+                "description": "Included a draft forward-able message"
+              },
+              {
+                "id": "c4-3",
+                "description": "Demonstrated knowledge of target contact's work"
+              },
+              {
+                "id": "c4-4",
+                "description": "Provided clear, specific ask for the introduction"
+              },
+              {
+                "id": "c4-5",
+                "description": "Included your relevant background briefly"
+              }
+            ]
+          }
+        },
+        {
+          "id": "assignment-resubmission",
+          "title": "Assignment Resubmission Request",
+          "order": 5,
+          "category": "administrative",
+          "submissionTemplate": {
+            "subjectLine": {
+              "type": "string",
+              "required": true,
+              "maxLength": 100,
+              "description": "Email subject line",
+              "example": "Database Management Final Project - Technical Issue and Resubmission Request"
+            },
+            "body": {
+              "type": "string",
+              "required": true,
+              "maxLength": 2000,
+              "description": "Complete email content including issue explanation, documentation, and resubmission proposal",
+              "example": "Dear Professor Johnson,\n\nI experienced a technical issue while submitting my Database Management final project. My laptop crashed during submission at 11:58 PM, causing me to miss the midnight deadline. I have attached the IT support documentation and would like to request permission to resubmit.\n\nBest regards,\n[Your name]"
+            }
+          },
+          "difficulty": {
+            "score": 3,
+            "scale": 5,
+            "factors": [
+              "Technical documentation",
+              "Policy navigation",
+              "Urgency management"
+            ],
+            "baseCompletionPoints": 20,
+            "bonusMultiplier": 1.2
+          },
+          "requiredEloRating": 175,
+          "commonMistakes": [
+            {
+              "id": "m5-1",
+              "description": "Not taking full responsibility for the situation"
+            },
+            {
+              "id": "m5-2",
+              "description": "Making excuses instead of providing solutions"
+            },
+            {
+              "id": "m5-3",
+              "description": "Failing to provide proper documentation or evidence of the technical issue"
+            },
+            {
+              "id": "m5-4",
+              "description": "Not acknowledging the instructor's time and effort in accommodating the request"
+            }
+          ],
+          "scenario": {
+            "context": "Your laptop crashed while submitting your final project for Database Management, causing you to miss the deadline by 2 hours. You have documentation from IT support about the incident.",
+            "requirements": [
+              "Explains the situation concisely",
+              "Provides documentation",
+              "Proposes a specific resubmission timeline",
+              "Acknowledges any late penalties that may apply"
+            ]
+          },
+          "rubric": {
+            "aiFeedbackPoints": [
+              "Analysis of responsibility acknowledgment",
+              "Evaluation of solution-focused approach",
+              "Assessment of documentation and timeline clarity"
+            ],
+            "checklistItems": [
+              {
+                "id": "c5-1",
+                "description": "Clearly explained the technical issue timing"
+              },
+              {
+                "id": "c5-2",
+                "description": "Attached relevant documentation/evidence"
+              },
+              {
+                "id": "c5-3",
+                "description": "Proposed specific resubmission timeline"
+              },
+              {
+                "id": "c5-4",
+                "description": "Acknowledged any applicable penalties"
+              },
+              {
+                "id": "c5-5",
+                "description": "Included preventive measures for future submissions"
+              }
+            ]
+          }
+        }
+      ],
+      "metadata": {
+        "version": "1.0",
+        "lastUpdated": "2025-02-19",
+        "totalModules": 5,
+        "estimatedCompletionTime": "2.5 hours",
+        "eloCalculation": {
+          "description": "Algorithm for calculating Elo points gained from completion",
+          "formula": "baseCompletionPoints * (difficultyScore/5) * bonusMultiplier * (checklistItemsCompleted/totalChecklistItems)",
+          "bonusConditions": [
+            {
+              "condition": "All checklist items completed",
+              "multiplier": 1.5
+            },
+            {
+              "condition": "Completed within estimatedTime",
+              "multiplier": 1.2
+            },
+            {
+              "condition": "First attempt success",
+              "multiplier": 1.3
+            }
+          ],
+          "penaltyConditions": [
+            {
+              "condition": "Multiple attempts required",
+              "multiplier": 0.8
+            },
+            {
+              "condition": "Missing crucial checklist items",
+              "multiplier": 0.7
+            }
+          ]
+        }
+      }
+    }
+  }
+  
+  
+  
+  
