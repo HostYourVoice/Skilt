@@ -29,13 +29,17 @@ final class ChattStore: @unchecked Sendable {
             }
         }
         
-        guard let apiUrl = URL(string: "\(serverUrl)getaudio/") else {
+        // Supabase API endpoint
+        guard let apiUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/submissions?select=*") else {
             print("getChatts: Bad URL")
             return
         }
         
         var request = URLRequest(url: apiUrl)
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept") // expect response in JSON
+        // Add Supabase API key and authorization headers
+        request.setValue("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "apikey")
+        request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "authorization")
         request.httpMethod = "GET"
 
         do {
@@ -46,29 +50,46 @@ final class ChattStore: @unchecked Sendable {
                 return
             }
                 
-            guard let chattsReceived = try? JSONSerialization.jsonObject(with: data) as? [[String?]] else {
+            guard let submissionsReceived = try? JSONDecoder().decode([SubmissionData].self, from: data) else {
                 print("getChatts: failed JSON deserialization")
                 return
             }
             
             var idx = 0
             var _chatts = [Chatt]()
-            for chattEntry in chattsReceived {
-                if chattEntry.count == self.nFields {
-                    _chatts.append(Chatt(username: chattEntry[0],
-                                             message: chattEntry[1],
-                                             id: UUID(uuidString: chattEntry[2] ?? ""),
-                                             timestamp: chattEntry[3],
-                                             altRow: idx % 2 == 0))
-                    idx += 1
-                } else {
-                    print("getChatts: Received unexpected number of fields: \(chattEntry.count) instead of \(self.nFields).")
-                }
+            for submission in submissionsReceived {
+                let formattedDate = formatDate(submission.created_at)
+                _chatts.append(Chatt(
+                    username: "User \(submission.id)",
+                    message: submission.submission_str,
+                    id: UUID(),
+                    timestamp: formattedDate,
+                    altRow: idx % 2 == 0
+                ))
+                idx += 1
             }
             self.chatts = _chatts
         } catch {
-            print("getChatts: NETWORKING ERROR")
+            print("getChatts: NETWORKING ERROR \(error.localizedDescription)")
         }
+    }
+    
+    // Helper function to format the date from Supabase
+    private func formatDate(_ dateString: String) -> String {
+        // Create a date formatter to parse the ISO 8601 date
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        // Create a formatter for the output
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateStyle = .short
+        outputFormatter.timeStyle = .short
+        
+        // Convert the date string to Date and then to the desired format
+        if let date = isoFormatter.date(from: dateString) {
+            return outputFormatter.string(from: date)
+        }
+        return "Unknown date"
     }
 
     func postChatt(_ chatt: Chatt) async -> Data? {
@@ -160,4 +181,23 @@ final class ChattStore: @unchecked Sendable {
     private let nFields = Mirror(reflecting: Chatt()).children.count-1
 
     private let serverUrl = "https://24.199.89.71/"
+}
+
+// Model for the Supabase submissions data
+struct SubmissionData: Codable {
+    let id: Int
+    let created_at: String
+    let submission_str: String
+    let user_id: String?
+    let scoring: EmptyJSONObject?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, created_at, submission_str, user_id, scoring
+    }
+}
+
+// Type to handle empty JSON objects
+struct EmptyJSONObject: Codable {
+    // This is an empty struct to represent an empty JSON object
+    // It will allow the decoder to handle {} in the JSON
 }
