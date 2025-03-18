@@ -68,14 +68,8 @@ final class ModuleQuestionsStore {
         submissions[questionId] = text
         submissionStatuses[questionId] = .submitted
         
-        // Save submission to Supabase
-        let submissionWithContext = "\(course.name) - \(course.code):\n\(text)"
-        Task {
-            let success = await SubmissionStore.shared.upsertSubmission(submissionText: submissionWithContext)
-            if !success {
-                print("Failed to save submission to Supabase")
-            }
-        }
+        // Don't save to Supabase immediately - we'll do it after evaluation
+        // with the scoring data included
         
         // Simulate evaluation process
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -96,7 +90,7 @@ final class ModuleQuestionsStore {
                 // Update status
                 self.submissionStatuses[questionId] = .completed(score: score, feedback: feedback)
                 
-                // Save the scoring data to Supabase
+                // Save to Supabase with scoring data (this is the only submission we'll make)
                 Task {
                     // Create the scoring JSON object
                     let scoringData: [String: Any] = [
@@ -108,7 +102,7 @@ final class ModuleQuestionsStore {
                     // Get the submission text that was previously saved
                     guard let submissionText = self.submissions[questionId] else { return }
                     
-                    // Update the submission with scoring data
+                    // Submit to Supabase with scoring data
                     let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
                     let success = await SubmissionStore.shared.upsertSubmission(
                         submissionText: submissionWithContext, 
@@ -116,7 +110,7 @@ final class ModuleQuestionsStore {
                     )
                     
                     if !success {
-                        print("Failed to save scoring data to Supabase")
+                        print("Failed to save submission with scoring data to Supabase")
                     }
                 }
             }
