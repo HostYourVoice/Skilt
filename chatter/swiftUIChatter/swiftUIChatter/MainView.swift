@@ -114,6 +114,7 @@ struct CategoryWithCourses: Identifiable {
 struct CategoryView: View {
     let category: CategoryWithCourses
     let sortOption: LearningTreeView.SortOption
+    let isExpanded: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -143,6 +144,13 @@ struct CategoryView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
                 }
+                
+                // Dropdown indicator inside the card
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .foregroundColor(categoryColor(for: category.name))
+                    .font(.system(size: 16, weight: .semibold))
+                    .animation(.spring(), value: isExpanded)
+                    .padding(.leading, 4)
             }
             
             // Metrics row
@@ -180,7 +188,10 @@ struct CategoryView: View {
             }
             .padding(.top, 4)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 10)
+        .padding(.horizontal, 8)
+        .background(categoryColor(for: category.name).opacity(0.1))
+        .cornerRadius(12)
     }
     
     // Return appropriate icon for category
@@ -296,7 +307,11 @@ struct EnhancedCourseListRow: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 10)
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .contentShape(Rectangle())  // Make the entire area tappable
         .onTapGesture {
             onCourseSelected(course)
@@ -641,36 +656,40 @@ struct LearningTreeView: View {
             Section {
                 ForEach(filteredCategories) { category in
                     VStack(spacing: 0) {
-                        DisclosureGroup(
-                            isExpanded: Binding(
-                                get: { expandedCategories.contains(category.id) },
-                                set: { isExpanded in
+                        let isExpanded = expandedCategories.contains(category.id)
+                        
+                        // Custom category header - now fully tappable
+                        CategoryView(category: category, sortOption: sortOption, isExpanded: isExpanded)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation {
                                     if isExpanded {
-                                        expandedCategories.insert(category.id)
-                                    } else {
                                         expandedCategories.remove(category.id)
+                                    } else {
+                                        expandedCategories.insert(category.id)
                                     }
                                 }
-                            ),
-                            content: {
-                                VStack(spacing: 4) {
-                                    ForEach(category.courses) { course in
-                                        EnhancedCourseListRow(
-                                            course: course,
-                                            sortOption: sortOption,
-                                            onCourseSelected: { course in
-                                                selectedCourse = course
-                                            }
-                                        )
-                                        .padding(.vertical, 6)
-                                    }
-                                }
-                                .padding(.top, 8)
-                            },
-                            label: {
-                                CategoryView(category: category, sortOption: sortOption)
                             }
-                        )
+                        
+                        // Content view that shows when expanded
+                        if isExpanded {
+                            VStack(spacing: 8) {
+                                ForEach(category.courses) { course in
+                                    EnhancedCourseListRow(
+                                        course: course,
+                                        sortOption: sortOption,
+                                        onCourseSelected: { course in
+                                            selectedCourse = course
+                                        }
+                                    )
+                                }
+                            }
+                            .padding(.top, 12)
+                            .padding(.bottom, 4)
+                            .padding(.horizontal, 4)
+                            .background(Color(.systemGroupedBackground))
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
                     }
                     .padding(.vertical, 2)
                 }
@@ -740,6 +759,8 @@ struct LearningTreeView: View {
             }
         }
         .listStyle(GroupedListStyle())
+        .environment(\.defaultMinListRowHeight, 0) // Allow for more compact rows when needed
+        .listSectionSpacing(16) // Add spacing between sections
         .refreshable {
             await store.getChatts()
             loadCourseData()
