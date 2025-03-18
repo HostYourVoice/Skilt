@@ -183,6 +183,57 @@ final class ChattStore: @unchecked Sendable {
     private let serverUrl = "https://24.199.89.71/"
 }
 
+// Add a new function to insert a submission to Supabase
+extension ChattStore {
+    func upsertSubmission(submissionText: String, userId: String? = nil) async -> Bool {
+        // Prepare the submission data
+        let submission = [
+            "submission_str": submissionText,
+            "user_id": userId ?? ChatterID.shared.id ?? "anonymous"
+        ] as [String: Any]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: submission) else {
+            print("upsertSubmission: JSON serialization error")
+            return false
+        }
+        
+        // Supabase API endpoint for the submissions table
+        guard let apiUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/submissions") else {
+            print("upsertSubmission: Bad URL")
+            return false
+        }
+        
+        var request = URLRequest(url: apiUrl)
+        // Headers for Supabase
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        // Add Supabase API key and authorization headers (using the same keys as in getChatts)
+        request.setValue("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "apikey")
+        request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "authorization")
+        // For upsert, we use the POST method with Prefer: resolution=merge header
+        request.setValue("resolution=merge-duplicates", forHTTPHeaderField: "Prefer")
+        request.httpMethod = "POST"
+        request.httpBody = jsonData
+        
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpStatus = response as? HTTPURLResponse {
+                let success = (200...299).contains(httpStatus.statusCode)
+                if !success {
+                    print("upsertSubmission: HTTP STATUS: \(httpStatus.statusCode)")
+                }
+                return success
+            }
+            
+            return false
+        } catch {
+            print("upsertSubmission: NETWORKING ERROR \(error.localizedDescription)")
+            return false
+        }
+    }
+}
+
 // Model for the Supabase submissions data
 struct SubmissionData: Codable {
     let id: Int

@@ -230,10 +230,19 @@ struct QuestionRow: View {
 struct ModuleQuestionsView: View {
     let course: Course
     @State private var store: ModuleQuestionsStore
+    @State private var showingTestAlert = false
+    @State private var testSubmissionResult = false
     
     init(course: Course) {
         self.course = course
         self._store = State(initialValue: ModuleQuestionsStore(course: course))
+    }
+    
+    // Test function to directly submit to Supabase
+    func testSubmitToSupabase() async {
+        let testSubmission = "Test submission from \(course.name) at \(Date().formatted())"
+        testSubmissionResult = await ChattStore.shared.upsertSubmission(submissionText: testSubmission)
+        showingTestAlert = true
     }
     
     var body: some View {
@@ -280,6 +289,22 @@ struct ModuleQuestionsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {
             store.loadQuestions()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    Task {
+                        await testSubmitToSupabase()
+                    }
+                }) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
+        .alert("Supabase Submission Test", isPresented: $showingTestAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(testSubmissionResult ? "Submission successful!" : "Submission failed. Check console for details.")
         }
     }
 }

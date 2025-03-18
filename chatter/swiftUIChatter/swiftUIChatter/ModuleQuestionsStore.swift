@@ -68,6 +68,15 @@ final class ModuleQuestionsStore {
         submissions[questionId] = text
         submissionStatuses[questionId] = .submitted
         
+        // Save submission to Supabase
+        Task {
+            let submissionText = "\(course.name) - \(course.code):\n\(text)"
+            let success = await ChattStore.shared.upsertSubmission(submissionText: submissionText)
+            if !success {
+                print("Failed to save submission to Supabase")
+            }
+        }
+        
         // Simulate evaluation process
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.submissionStatuses[questionId] = .evaluating
