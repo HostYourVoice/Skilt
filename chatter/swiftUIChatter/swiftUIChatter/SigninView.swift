@@ -43,7 +43,7 @@ struct SigninView: View {
     
     func backendSignin(_ token: String?) {
         Task {
-            if let _ = await ChattStore.shared.addUser(token) {
+            if let _ = await SubmissionStore.shared.addUser(token) {
                 await ChatterID.shared.save()
             }
             isPresented.toggle()

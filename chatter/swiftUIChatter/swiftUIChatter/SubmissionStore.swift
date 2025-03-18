@@ -1,10 +1,9 @@
 //
-//  ChattStore.swift
+//  SubmissionStore.swift
 //  swiftUIChatter
 //
 //  Created by BlessedAmulya Parmar on 1/29/25.
 //
-
 
 import Observation
 import Dispatch
@@ -12,12 +11,15 @@ import Foundation
 import os
 
 @Observable
-final class ChattStore: @unchecked Sendable {
+final class SubmissionStore: @unchecked Sendable {
     
-    func getChatts() async {
+    func getSubmissions() async {
+        print("DEBUG: Starting getSubmissions()") // Debug logging
+        
         // only one outstanding retrieval
         mutex.withLock {
             guard !self.isRetrieving else {
+                print("DEBUG: Already retrieving - exiting early")
                 return
             }
             self.isRetrieving = true
@@ -29,11 +31,25 @@ final class ChattStore: @unchecked Sendable {
             }
         }
         
+        // Generate fallback mock data in case the real API fails
+        Task { 
+            // Wait for 3 seconds to let the real API attempt complete
+            try? await Task.sleep(for: .seconds(3))
+            
+            // If submissions are still empty after API call, generate mock data
+            if self.submissions.isEmpty {
+                print("DEBUG: API call appears to have failed or returned no data. Generating mock data.")
+                self.generateMockSubmissions()
+            }
+        }
+        
         // Supabase API endpoint
         guard let apiUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/submissions?select=*&order=created_at.desc") else {
-            print("getChatts: Bad URL")
+            print("getSubmissions: Bad URL")
             return
         }
+        
+        print("DEBUG: Preparing request to Supabase") // Debug logging
         
         var request = URLRequest(url: apiUrl)
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept") // expect response in JSON
@@ -43,20 +59,40 @@ final class ChattStore: @unchecked Sendable {
         request.httpMethod = "GET"
 
         do {
+            print("DEBUG: Sending request to Supabase") // Debug logging
             let (data, response) = try await URLSession.shared.data(for: request)
+            
+            print("DEBUG: Response received with \(data.count) bytes") // Debug logging
                 
-            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
-                print("getChatts: HTTP STATUS: \(httpStatus.statusCode)")
-                return
+            if let httpStatus = response as? HTTPURLResponse {
+                print("DEBUG: HTTP Status: \(httpStatus.statusCode)") // Debug logging
+                
+                if httpStatus.statusCode != 200 {
+                    print("getSubmissions: HTTP STATUS: \(httpStatus.statusCode)")
+                    return
+                }
+            }
+            
+            // Print raw JSON for debugging
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("DEBUG: JSON Response: \(jsonString.prefix(200))...") // Print first 200 chars
             }
                 
             guard let submissionsReceived = try? JSONDecoder().decode([SubmissionData].self, from: data) else {
-                print("getChatts: failed JSON deserialization")
+                print("getSubmissions: failed JSON deserialization")
+                // Try to identify the specific decoding error
+                do {
+                    _ = try JSONDecoder().decode([SubmissionData].self, from: data)
+                } catch {
+                    print("DEBUG: JSON Decoding error: \(error)")
+                }
                 return
             }
             
+            print("DEBUG: Successfully decoded \(submissionsReceived.count) submissions") // Debug logging
+            
             var idx = 0
-            var _chatts = [Chatt]()
+            var _submissions = [Submission]()
             for submission in submissionsReceived {
                 let formattedDate = formatDate(submission.created_at)
                 
@@ -66,7 +102,7 @@ final class ChattStore: @unchecked Sendable {
                     username = "#\(submission.id) (\(score)/\(scoreMax))"
                 }
                 
-                _chatts.append(Chatt(
+                _submissions.append(Submission(
                     username: username,
                     message: submission.submission_str,
                     id: UUID(),
@@ -75,9 +111,15 @@ final class ChattStore: @unchecked Sendable {
                 ))
                 idx += 1
             }
-            self.chatts = _chatts
+            
+            print("DEBUG: Created \(_submissions.count) submission objects") // Debug logging
+            
+            self.submissions = _submissions
+            
+            print("DEBUG: Updated store.submissions with \(self.submissions.count) items") // Debug logging
         } catch {
-            print("getChatts: NETWORKING ERROR \(error.localizedDescription)")
+            print("getSubmissions: NETWORKING ERROR \(error.localizedDescription)")
+            print("DEBUG: Detailed error: \(error)") // More detailed error info
         }
     }
     
@@ -99,16 +141,16 @@ final class ChattStore: @unchecked Sendable {
         return "Unknown date"
     }
 
-    func postChatt(_ chatt: Chatt) async -> Data? {
+    func postSubmission(_ submission: Submission) async -> Data? {
         let jsonObj = ["chatterID": ChatterID.shared.id,
-                       "message": chatt.message]
+                       "message": submission.message]
         guard let jsonData = try? JSONSerialization.data(withJSONObject: jsonObj) else {
-            print("postChatt: jsonData serialization error")
+            print("postSubmission: jsonData serialization error")
             return nil
         }
                 
         guard let apiUrl = URL(string: "\(serverUrl)postauth/") else {
-            print("postChatt: Bad URL")
+            print("postSubmission: Bad URL")
             return nil
         }
         
@@ -120,12 +162,12 @@ final class ChattStore: @unchecked Sendable {
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-                print("postChatt: \(HTTPURLResponse.localizedString(forStatusCode: http.statusCode))")
+                print("postSubmission: \(HTTPURLResponse.localizedString(forStatusCode: http.statusCode))")
             } else {
                 return data
             }
         } catch {
-            print("postChatt: NETWORKING ERROR")
+            print("postSubmission: NETWORKING ERROR")
         }
         return nil
     }
@@ -177,21 +219,42 @@ final class ChattStore: @unchecked Sendable {
         }
     }
     
-    static let shared = ChattStore() // create one instance of the class to be shared
+    static let shared = SubmissionStore() // create one instance of the class to be shared
     private init() {}                // and make the constructor private so no other
                                      // instances can be created
 
     private var isRetrieving = false
     private let mutex = OSAllocatedUnfairLock()
 
-    private(set) var chatts = [Chatt]()
-    private let nFields = Mirror(reflecting: Chatt()).children.count-1
+    private(set) var submissions = [Submission]()
+    private let nFields = Mirror(reflecting: Submission()).children.count-1
 
     private let serverUrl = "https://24.199.89.71/"
+
+    // For testing - create mock submissions when API fails
+    private func generateMockSubmissions() {
+        print("DEBUG: Generating mock submission data")
+        var mockSubmissions = [Submission]()
+        
+        // Create 5 mock submissions
+        for i in 0..<5 {
+            let mockSubmission = Submission(
+                username: "#\(1000 + i) (85/100)",
+                message: "This is a mock submission #\(i+1) created for testing. The real API connection may be failing or there might be no data in the database.",
+                id: UUID(),
+                timestamp: "2/18/24, 10:\(i*10) AM",
+                altRow: i % 2 == 0
+            )
+            mockSubmissions.append(mockSubmission)
+        }
+        
+        self.submissions = mockSubmissions
+        print("DEBUG: Added \(mockSubmissions.count) mock submissions to the store")
+    }
 }
 
 // Add a new function to insert a submission to Supabase
-extension ChattStore {
+extension SubmissionStore {
     func upsertSubmission(submissionText: String, userId: String? = nil, scoringData: [String: Any]? = nil) async -> Bool {
         // Prepare the submission data
         var submission: [String: Any] = [
@@ -219,7 +282,7 @@ extension ChattStore {
         // Headers for Supabase
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        // Add Supabase API key and authorization headers (using the same keys as in getChatts)
+        // Add Supabase API key and authorization headers
         request.setValue("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "apikey")
         request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "authorization")
         // For upsert, we use the POST method with Prefer: resolution=merge header
@@ -257,31 +320,36 @@ struct SubmissionData: Codable {
     enum CodingKeys: String, CodingKey {
         case id, created_at, submission_str, user_id, scoring
     }
+    
+    // Custom initializer with defaults for nullable fields
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(Int.self, forKey: .id)
+        created_at = try container.decode(String.self, forKey: .created_at)
+        submission_str = try container.decode(String.self, forKey: .submission_str)
+        user_id = try container.decodeIfPresent(String.self, forKey: .user_id)
+        scoring = try container.decodeIfPresent(ScoringData.self, forKey: .scoring)
+    }
 }
 
-// Structured scoring data
 struct ScoringData: Codable {
     let score: Int?
     let scoreMax: Int?
     let feedback: String?
+    let rubricPoints: [String]?
     
-    // This init is needed for decoding empty JSON objects
+    enum CodingKeys: String, CodingKey {
+        case score, scoreMax, feedback, rubricPoints
+    }
+    
+    // Custom initializer for more resilient decoding
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        // All fields are optional
         score = try container.decodeIfPresent(Int.self, forKey: .score)
         scoreMax = try container.decodeIfPresent(Int.self, forKey: .scoreMax)
         feedback = try container.decodeIfPresent(String.self, forKey: .feedback)
+        rubricPoints = try container.decodeIfPresent([String].self, forKey: .rubricPoints)
     }
-    
-    enum CodingKeys: String, CodingKey {
-        case score, scoreMax, feedback
-    }
-}
-
-// Type to handle empty JSON objects - keeping for backward compatibility
-struct EmptyJSONObject: Codable {
-    // This is an empty struct to represent an empty JSON object
-    // It will allow the decoder to handle {} in the JSON
-}
+} 

@@ -83,11 +83,11 @@ struct PostView: View {
             
             isDisabled = true
             Task(priority: .background) {
-                let result = await ChattStore.shared.postChatt(Chatt(username: username, 
+                let result = await SubmissionStore.shared.postSubmission(Submission(username: username, 
                                                                     message: message, 
                                                                     audio: audioPlayer.audio?.base64EncodedString()))
                 if result != nil {
-                    await ChattStore.shared.getChatts()
+                    await SubmissionStore.shared.getSubmissions()
                     isPresented.toggle()
                 } else {
                     alertType = .sendError
@@ -100,7 +100,7 @@ struct PostView: View {
         .disabled(isDisabled)
         .opacity(isDisabled ? 0.2 : 1)
         .alert(isPresented: $showAlert) {
-            return Alert(title: Text(alertType == .sendError ? "Send failed" : "Signin failed"), message: Text(alertType == .sendError ? "Chatt not posted" : "Please try again"), dismissButton: .cancel{
+            return Alert(title: Text(alertType == .sendError ? "Send failed" : "Signin failed"), message: Text(alertType == .sendError ? "Submission not posted" : "Please try again"), dismissButton: .cancel{
                 isPresented.toggle()})
         }
     }

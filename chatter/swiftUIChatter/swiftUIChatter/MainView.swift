@@ -548,7 +548,7 @@ struct SettingsView: View {
 
 // Learning Tree View (former MainView content)
 struct LearningTreeView: View {
-    private let store = ChattStore.shared
+    private let store = SubmissionStore.shared
     @State private var isPresenting = false
     @State private var courses: [Course] = []
     @State private var categorizedCourses: [CategoryWithCourses] = []
@@ -629,7 +629,14 @@ struct LearningTreeView: View {
                 ModuleQuestionsView(course: course)
             }
             .onAppear {
+                print("DEBUG: LearningTreeView.body appeared")
                 loadCourseData()
+                
+                // Force a refresh of submissions data when view appears
+                Task {
+                    print("DEBUG: Triggering refresh of submissions data on view appear")
+                    await store.getSubmissions()
+                }
             }
         }
     }
@@ -751,11 +758,24 @@ struct LearningTreeView: View {
             
             // Submissions section
             Section {
-                ForEach(store.chatts) { chatt in
-                    ChattListRow(chatt: chatt)
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color(chatt.altRow ?
-                            .systemGray5 : .systemGray6))
+                if store.submissions.isEmpty {
+                    Text("No submissions available")
+                        .foregroundColor(.secondary)
+                        .italic()
+                        .padding()
+                        .onAppear {
+                            print("DEBUG: Submissions section is empty - no data available")
+                        }
+                } else {
+                    ForEach(store.submissions) { submission in
+                        SubmissionListRow(submission: submission)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color(submission.altRow ?
+                                .systemGray5 : .systemGray6))
+                    }
+                    .onAppear {
+                        print("DEBUG: ForEach in submissions section has \(store.submissions.count) items")
+                    }
                 }
             } header: {
                 Text("MY WORDSMITH SUBMISSIONS")
@@ -770,8 +790,12 @@ struct LearningTreeView: View {
         .environment(\.defaultMinListRowHeight, 0) // Allow for more compact rows when needed
         .listSectionSpacing(16) // Add spacing between sections
         .refreshable {
-            await store.getChatts()
+            print("DEBUG: Refreshable action triggered - fetching new data")
+            await store.getSubmissions()
             loadCourseData()
+        }
+        .onAppear {
+            print("DEBUG: courseTreeView appeared - store has \(store.submissions.count) submissions")
         }
     }
     

@@ -11,7 +11,7 @@ import SwiftUI
 struct swiftUIChatterApp: App {
     init() {
         Task {
-            await ChattStore.shared.getChatts()
+            await SubmissionStore.shared.getSubmissions()
         }
     }
 

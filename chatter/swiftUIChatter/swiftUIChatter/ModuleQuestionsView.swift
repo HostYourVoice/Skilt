@@ -284,7 +284,7 @@ struct ModuleQuestionsView: View {
     // Test function to directly submit to Supabase
     func testSubmitToSupabase() async {
         let testSubmission = "Test submission from \(course.name) at \(Date().formatted())"
-        testSubmissionResult = await ChattStore.shared.upsertSubmission(submissionText: testSubmission)
+        testSubmissionResult = await SubmissionStore.shared.upsertSubmission(submissionText: testSubmission)
         showingTestAlert = true
     }
     

@@ -71,7 +71,7 @@ final class ModuleQuestionsStore {
         // Save submission to Supabase
         let submissionWithContext = "\(course.name) - \(course.code):\n\(text)"
         Task {
-            let success = await ChattStore.shared.upsertSubmission(submissionText: submissionWithContext)
+            let success = await SubmissionStore.shared.upsertSubmission(submissionText: submissionWithContext)
             if !success {
                 print("Failed to save submission to Supabase")
             }
@@ -110,7 +110,7 @@ final class ModuleQuestionsStore {
                     
                     // Update the submission with scoring data
                     let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
-                    let success = await ChattStore.shared.upsertSubmission(
+                    let success = await SubmissionStore.shared.upsertSubmission(
                         submissionText: submissionWithContext, 
                         scoringData: scoringData
                     )
