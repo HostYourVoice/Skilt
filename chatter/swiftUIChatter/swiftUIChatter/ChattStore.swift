@@ -30,7 +30,7 @@ final class ChattStore: @unchecked Sendable {
         }
         
         // Supabase API endpoint
-        guard let apiUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/submissions?select=*") else {
+        guard let apiUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/submissions?select=*&order=created_at.desc") else {
             print("getChatts: Bad URL")
             return
         }
@@ -60,7 +60,7 @@ final class ChattStore: @unchecked Sendable {
             for submission in submissionsReceived {
                 let formattedDate = formatDate(submission.created_at)
                 _chatts.append(Chatt(
-                    username: "User \(submission.id)",
+                    username: "#\(submission.id)",
                     message: submission.submission_str,
                     id: UUID(),
                     timestamp: formattedDate,
