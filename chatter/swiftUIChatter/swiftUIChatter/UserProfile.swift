@@ -100,6 +100,16 @@ final class UserProfile {
             familyName: familyName,
             idToken: idToken
         )
+        
+        // Call upsertUser to save user data to Supabase
+        Task {
+            await upsertUser(
+                userId: userId ?? "",
+                displayName: fullName ?? "Anonymous User",
+                email: email ?? "",
+                profilePicture: profilePicURL?.absoluteString
+            )
+        }
     }
     
     // Update user stats
@@ -267,5 +277,36 @@ final class UserProfile {
         longestStreak = userDefaults.integer(forKey: "userProfile_longestStreak")
         lastActivityDate = userDefaults.object(forKey: "userProfile_lastActivityDate") as? Date
         streakFreeze = userDefaults.integer(forKey: "userProfile_streakFreeze")
+    }
+}
+
+func upsertUser(userId: String, displayName: String, email: String, profilePicture: String?) async {
+    let url = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/users")!
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "apikey")
+    request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "authorization")
+    request.setValue("resolution=merge-duplicates", forHTTPHeaderField: "Prefer")
+
+    let user: [String: Any] = [
+        "user_id": userId,
+        "display_name": displayName,
+        "email": email,
+        "profile_picture": profilePicture ?? ""
+    ]
+
+    request.httpBody = try? JSONSerialization.data(withJSONObject: user)
+
+    do {
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+            print("User upserted successfully")
+        } else {
+            print("Failed to upsert user")
+        }
+    } catch {
+        print("Error: \(error.localizedDescription)")
     }
 } 
