@@ -250,7 +250,7 @@ struct ModuleQuestionsView: View {
                     Text("Instructor: \(course.instructor)")
                         .font(.subheadline)
                     
-                    Text("This module contains \(store.questions.count) scenarios to complete.")
+                    Text(store.questions.count == 1 ? "This module contains a single scenario to complete." : "This module contains \(store.questions.count) scenarios to complete.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .padding(.top, 4)
@@ -293,6 +293,7 @@ struct ModuleQuestionsView: View {
         difficulty: 3,
         maxDifficulty: 5,
         eloRequired: 1200,
-        category: "Marketing"
+        category: "Marketing",
+        moduleId: "email-design-101"
     ))
 } 

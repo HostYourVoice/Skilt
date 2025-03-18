@@ -35,7 +35,13 @@ struct ModuleInfo: Codable {
     let category: String
     let difficulty: DifficultyInfo
     let requiredEloRating: Int
+    let scenario: ScenarioInfo?
     // Other fields omitted for brevity
+}
+
+struct ScenarioInfo: Codable {
+    let context: String
+    let requirements: [String]
 }
 
 struct DifficultyInfo: Codable {
@@ -55,7 +61,7 @@ struct MetadataInfo: Codable {
 }
 
 // Updated Course model
-struct Course: Identifiable {
+struct Course: Identifiable, Hashable {
     let id: UUID = UUID()
     let name: String
     let code: String
@@ -65,12 +71,22 @@ struct Course: Identifiable {
     let maxDifficulty: Int
     let eloRequired: Int
     let category: String
+    let moduleId: String  // Added to reference back to the original module
+    
+    // Adding Hashable conformance
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Course, rhs: Course) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 // Course row component
 struct CourseListRow: View {
     let course: Course
-    @State private var isPresenting = false
+    var onCourseSelected: (Course) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -105,10 +121,7 @@ struct CourseListRow: View {
         .padding(.vertical, 8)
         .contentShape(Rectangle())  // Make the entire area tappable
         .onTapGesture {
-            isPresenting = true
-        }
-        .navigationDestination(isPresented: $isPresenting) {
-            ModuleQuestionsView(course: course)
+            onCourseSelected(course)
         }
     }
 }
@@ -184,13 +197,16 @@ struct LearningTreeView: View {
     private let store = ChattStore.shared
     @State private var isPresenting = false
     @State private var courses: [Course] = []
+    @State private var selectedCourse: Course?
     
     var body: some View {
         NavigationStack {
             List {
                 Section(header: Text("My Email Course Modules").font(.headline)) {
                     ForEach(courses) { course in
-                        CourseListRow(course: course)
+                        CourseListRow(course: course, onCourseSelected: { course in
+                            selectedCourse = course
+                        })
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(course.altRow ?
                                 .systemGray5 : .systemGray6))
@@ -227,6 +243,9 @@ struct LearningTreeView: View {
             .navigationDestination(isPresented: $isPresenting) {
                 PostView(isPresented: $isPresenting)
             }
+            .navigationDestination(item: $selectedCourse) { course in
+                ModuleQuestionsView(course: course)
+            }
             .onAppear {
                 loadCourseData()
             }
@@ -259,7 +278,8 @@ struct LearningTreeView: View {
                     difficulty: module.difficulty.score,
                     maxDifficulty: module.difficulty.scale,
                     eloRequired: module.requiredEloRating,
-                    category: categoryName
+                    category: categoryName,
+                    moduleId: module.id
                 )
             }
         } catch {

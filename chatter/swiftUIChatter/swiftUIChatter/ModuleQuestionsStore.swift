@@ -19,6 +19,9 @@ final class ModuleQuestionsStore {
     private(set) var submissions: [UUID: String] = [:]
     private(set) var submissionStatuses: [UUID: SubmissionStatus] = [:]
     
+    // Cached JSON data
+    private var courseData: CourseData?
+    
     enum SubmissionStatus {
         case notSubmitted
         case submitted
@@ -28,18 +31,32 @@ final class ModuleQuestionsStore {
     
     init(course: Course) {
         self.course = course
+        loadJSONData()
         loadQuestions()
+    }
+    
+    // Load the CoursesTYG.json data
+    private func loadJSONData() {
+        guard let url = Bundle.main.url(forResource: "CoursesTYG", withExtension: "json"),
+              let data = try? Data(contentsOf: url) else {
+            print("Error loading JSON file")
+            return
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            self.courseData = try decoder.decode(CourseData.self, from: data)
+        } catch {
+            print("Error decoding JSON: \(error)")
+        }
     }
     
     func loadQuestions() {
         isLoading = true
         
-        // In a real app, this would fetch questions from an API or database
-        // For now, we'll generate mock questions based on the course
-        
         // Simulate network delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            self.questions = self.generateMockQuestions()
+            self.questions = self.generateQuestionsFromJSON()
             self.isLoading = false
         }
     }
@@ -87,6 +104,66 @@ final class ModuleQuestionsStore {
         }
     }
     
+    private func generateQuestionsFromJSON() -> [ModuleQuestion] {
+        var questions: [ModuleQuestion] = []
+        
+        // Find the module matching our course's moduleId
+        guard let courseData = courseData,
+              let module = courseData.course.modules.first(where: { $0.id == course.moduleId }),
+              let scenario = module.scenario else {
+            // Fallback to mock questions if no scenario found
+            return generateMockQuestions()
+        }
+        
+        // Instead of creating multiple questions with different titles,
+        // create just one question using the module's title
+        let difficulty = module.difficulty.score
+        let points = difficulty * 20
+        
+        // Create rubric points for evaluating submissions
+        let rubricPoints: [String: Int] = [
+            "Understanding of concepts": points / 4,
+            "Application to scenario": points / 4,
+            "Clarity and organization": points / 4,
+            "Creativity and effectiveness": points / 4
+        ]
+        
+        // Format question based on requirements
+        let requirementsText = scenario.requirements.map { "- \($0)" }.joined(separator: "\n")
+        let questionText = """
+        How would you approach this scenario to achieve the best outcome?
+        
+        Consider these requirements:
+        \(requirementsText)
+        
+        Describe your strategy and rationale.
+        """
+        
+        // Add the single question to the list
+        questions.append(
+            ModuleQuestion(
+                title: module.title, // Use the module title directly
+                scenario: scenario.context,
+                question: questionText,
+                options: [
+                    "Option A: First approach",
+                    "Option B: Second approach",
+                    "Option C: Third approach",
+                    "Option D: Fourth approach"
+                ],
+                correctAnswer: Int.random(in: 0...3),
+                explanation: "This scenario tests your understanding of \(course.category) principles and best practices in email communication.",
+                difficulty: difficulty,
+                points: points,
+                altRow: false,
+                rubricPoints: rubricPoints
+            )
+        )
+        
+        return questions
+    }
+    
+    // Keep the original function as a fallback
     private func generateMockQuestions() -> [ModuleQuestion] {
         var mockQuestions: [ModuleQuestion] = []
         
