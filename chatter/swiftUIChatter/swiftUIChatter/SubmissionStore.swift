@@ -96,10 +96,19 @@ final class SubmissionStore: @unchecked Sendable {
             for submission in submissionsReceived {
                 let formattedDate = formatDate(submission.created_at)
                 
-                // Create username with score if available
+                // Create username with score and user information if available
                 var username = "#\(submission.id)"
+                
+                // Add user information if available
+                if let userName = submission.user_name {
+                    username = "\(userName) (#\(submission.id))"
+                } else if let userEmail = submission.user_email {
+                    username = "\(userEmail) (#\(submission.id))"
+                }
+                
+                // Add score if available
                 if let scoring = submission.scoring, let score = scoring.score, let scoreMax = scoring.scoreMax {
-                    username = "#\(submission.id) (\(score)/\(scoreMax))"
+                    username = "\(username) (\(score)/\(scoreMax))"
                 }
                 
                 _submissions.append(Submission(
@@ -256,11 +265,24 @@ final class SubmissionStore: @unchecked Sendable {
 // Add a new function to insert a submission to Supabase
 extension SubmissionStore {
     func upsertSubmission(submissionText: String, userId: String? = nil, scoringData: [String: Any]? = nil) async -> Bool {
+        // Get user profile information
+        let userProfile = UserProfile.shared
+        
         // Prepare the submission data
         var submission: [String: Any] = [
             "submission_str": submissionText,
-            "user_id": userId ?? ChatterID.shared.id ?? "anonymous"
+            "user_id": userId ?? userProfile.userId ?? ChatterID.shared.id ?? "anonymous"
         ]
+        
+        // Add email if available
+        if let email = userProfile.email {
+            submission["user_email"] = email
+        }
+        
+        // Add user's display name if available
+        if userProfile.displayName != "Anonymous User" {
+            submission["user_name"] = userProfile.displayName
+        }
         
         // Add scoring data if provided
         if let scoringData = scoringData {
@@ -315,10 +337,12 @@ struct SubmissionData: Codable {
     let created_at: String
     let submission_str: String
     let user_id: String?
+    let user_email: String?
+    let user_name: String?
     let scoring: ScoringData?
     
     enum CodingKeys: String, CodingKey {
-        case id, created_at, submission_str, user_id, scoring
+        case id, created_at, submission_str, user_id, user_email, user_name, scoring
     }
     
     // Custom initializer with defaults for nullable fields
@@ -329,6 +353,8 @@ struct SubmissionData: Codable {
         created_at = try container.decode(String.self, forKey: .created_at)
         submission_str = try container.decode(String.self, forKey: .submission_str)
         user_id = try container.decodeIfPresent(String.self, forKey: .user_id)
+        user_email = try container.decodeIfPresent(String.self, forKey: .user_email)
+        user_name = try container.decodeIfPresent(String.self, forKey: .user_name)
         scoring = try container.decodeIfPresent(ScoringData.self, forKey: .scoring)
     }
 }

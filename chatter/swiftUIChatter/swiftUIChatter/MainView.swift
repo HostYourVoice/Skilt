@@ -545,7 +545,7 @@ struct ProfileView: View {
                                 }
                                 
                                 // Streak counter
-                                VStack(spacing: 2) {
+                                VStack(spacing: 1) {
                                     Text("\(userProfile.currentStreak)")
                                         .font(.title3)
                                         .fontWeight(.bold)

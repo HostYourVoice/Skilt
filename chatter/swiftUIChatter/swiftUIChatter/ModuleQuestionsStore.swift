@@ -102,10 +102,15 @@ final class ModuleQuestionsStore {
                     // Get the submission text that was previously saved
                     guard let submissionText = self.submissions[questionId] else { return }
                     
+                    // Get the user's ID from UserProfile or fallback to ChatterID
+                    let userProfile = UserProfile.shared
+                    let userId = userProfile.userId ?? ChatterID.shared.id
+                    
                     // Submit to Supabase with scoring data
                     let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
                     let success = await SubmissionStore.shared.upsertSubmission(
                         submissionText: submissionWithContext, 
+                        userId: userId,
                         scoringData: scoringData
                     )
                     
