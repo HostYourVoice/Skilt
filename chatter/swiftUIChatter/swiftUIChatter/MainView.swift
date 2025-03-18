@@ -343,25 +343,101 @@ struct EnhancedCourseListRow: View {
 // Profile View
 struct ProfileView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "person.circle.fill")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 100, height: 100)
-                .foregroundColor(.blue)
+        ScrollView {
+            VStack(spacing: 20) {
+                // Profile header with avatar
+                VStack(spacing: 16) {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(.blue)
+                    
+                    Text("User Profile")
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    Text("User information will be displayed here")
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 40)
+                
+                // Progress section
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("My Progress")
+                        .font(.headline)
+                    
+                    HStack(spacing: 20) {
+                        // ELO Rating circle
+                        VStack {
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.blue.opacity(0.2), lineWidth: 10)
+                                    .frame(width: 80, height: 80)
+                                
+                                Circle()
+                                    .trim(from: 0, to: 0.7)
+                                    .stroke(Color.blue, lineWidth: 10)
+                                    .frame(width: 80, height: 80)
+                                    .rotationEffect(.degrees(-90))
+                                
+                                VStack(spacing: 2) {
+                                    Text("1540")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                    
+                                    Text("ELO")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Text("Rating")
+                                .font(.caption)
+                                .padding(.top, 6)
+                        }
+                        
+                        // Modules completed circle
+                        VStack {
+                            ZStack {
+                                Circle()
+                                    .stroke(Color.green.opacity(0.2), lineWidth: 10)
+                                    .frame(width: 80, height: 80)
+                                
+                                Circle()
+                                    .trim(from: 0, to: 0.35)
+                                    .stroke(Color.green, lineWidth: 10)
+                                    .frame(width: 80, height: 80)
+                                    .rotationEffect(.degrees(-90))
+                                
+                                VStack(spacing: 2) {
+                                    Text("7/20")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                    
+                                    Text("Done")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Text("Modules")
+                                .font(.caption)
+                                .padding(.top, 6)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
-            
-            Text("User Profile")
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text("User information will be displayed here")
-                .foregroundColor(.secondary)
-                .padding()
-            
-            Spacer()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(12)
+                .padding(.horizontal)
+                
+                Spacer()
+            }
         }
         .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -369,40 +445,95 @@ struct ProfileView: View {
 struct SettingsView: View {
     var body: some View {
         List {
-            Section(header: Text("Account")) {
-                HStack {
-                    Image(systemName: "person.fill")
-                    Text("Account Information")
+            Section(header: Text("Account").textCase(.uppercase)) {
+                NavigationLink(destination: Text("Account Information")) {
+                    HStack {
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.blue)
+                            .frame(width: 26)
+                        Text("Account Information")
+                    }
                 }
-                HStack {
-                    Image(systemName: "bell.fill")
-                    Text("Notifications")
+                
+                NavigationLink(destination: Text("Notifications Settings")) {
+                    HStack {
+                        Image(systemName: "bell.fill")
+                            .foregroundColor(.orange)
+                            .frame(width: 26)
+                        Text("Notifications")
+                        
+                        Spacer()
+                        
+                        Text("On")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                NavigationLink(destination: Text("Preferences")) {
+                    HStack {
+                        Image(systemName: "hand.tap.fill")
+                            .foregroundColor(.green)
+                            .frame(width: 26)
+                        Text("Preferences")
+                    }
                 }
             }
             
-            Section(header: Text("Preferences")) {
-                HStack {
-                    Image(systemName: "paintbrush.fill")
-                    Text("Appearance")
+            Section(header: Text("Appearance").textCase(.uppercase)) {
+                NavigationLink(destination: Text("Theme Settings")) {
+                    HStack {
+                        Image(systemName: "paintbrush.fill")
+                            .foregroundColor(.purple)
+                            .frame(width: 26)
+                        Text("Theme")
+                        
+                        Spacer()
+                        
+                        Text("System")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
-                HStack {
-                    Image(systemName: "lock.fill")
-                    Text("Privacy")
+                
+                NavigationLink(destination: Text("Privacy Settings")) {
+                    HStack {
+                        Image(systemName: "lock.fill")
+                            .foregroundColor(.gray)
+                            .frame(width: 26)
+                        Text("Privacy")
+                    }
                 }
             }
             
-            Section(header: Text("Support")) {
-                HStack {
-                    Image(systemName: "questionmark.circle.fill")
-                    Text("Help & Feedback")
+            Section(header: Text("Support").textCase(.uppercase)) {
+                NavigationLink(destination: Text("Help & Feedback")) {
+                    HStack {
+                        Image(systemName: "questionmark.circle.fill")
+                            .foregroundColor(.blue)
+                            .frame(width: 26)
+                        Text("Help & Feedback")
+                    }
                 }
-                HStack {
-                    Image(systemName: "info.circle.fill")
-                    Text("About")
+                
+                NavigationLink(destination: Text("About App")) {
+                    HStack {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(.teal)
+                            .frame(width: 26)
+                        Text("About")
+                        
+                        Spacer()
+                        
+                        Text("v1.0.0")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
         .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -690,22 +821,70 @@ struct LearningTreeView: View {
 }
 
 struct MainView: View {
+    @State private var selectedTab = 1  // Default to Learning tab
+    
     var body: some View {
-        TabView {
-            ProfileView()
-                .tabItem {
-                    Label("Profile", systemImage: "person.fill")
-                }
+        TabView(selection: $selectedTab) {
+            NavigationStack {
+                ProfileView()
+            }
+            .tag(0)
+            .tabItem {
+                Image(systemName: "person")
+                Text("Profile")
+            }
             
-            LearningTreeView()
-                .tabItem {
-                    Label("Learning", systemImage: "book.fill")
-                }
+            NavigationStack {
+                LearningTreeView()
+            }
+            .tag(1)
+            .tabItem {
+                Image(systemName: "book")
+                Text("Learning")
+            }
             
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
-                }
+            NavigationStack {
+                SettingsView()
+            }
+            .tag(2)
+            .tabItem {
+                Image(systemName: "gearshape")
+                Text("Settings")
+            }
+        }
+        .onAppear {
+            // Tab bar customization
+            let tabBarAppearance = UITabBarAppearance()
+            tabBarAppearance.configureWithOpaqueBackground()
+            tabBarAppearance.backgroundColor = UIColor.systemBackground
+            
+            // Avoid images being too large or text overlapping
+            let itemAppearance = UITabBarItemAppearance(style: .stacked)
+            
+            // Normal state - smaller image, reduced spacing
+            itemAppearance.normal.iconColor = UIColor.systemGray
+            itemAppearance.normal.titleTextAttributes = [
+                NSAttributedString.Key.font: UIFont.systemFont(ofSize: 10, weight: .regular)
+            ]
+            
+            // Selected state - better highlight and spacing
+            itemAppearance.selected.iconColor = UIColor.systemBlue
+            itemAppearance.selected.titleTextAttributes = [
+                NSAttributedString.Key.font: UIFont.systemFont(ofSize: 10, weight: .semibold),
+                NSAttributedString.Key.foregroundColor: UIColor.systemBlue
+            ]
+            
+            // Apply styles
+            tabBarAppearance.stackedLayoutAppearance = itemAppearance
+            tabBarAppearance.inlineLayoutAppearance = itemAppearance
+            tabBarAppearance.compactInlineLayoutAppearance = itemAppearance
+            
+            UITabBar.appearance().standardAppearance = tabBarAppearance
+            
+            // For bottom safe area (iPhone X and later)
+            if #available(iOS 15.0, *) {
+                UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+            }
         }
     }
 }
