@@ -14,6 +14,7 @@ final class UserProfile {
     static let shared = UserProfile() // Singleton instance
     private init() {
         loadFromUserDefaults()
+        checkAndUpdateStreak()
     }
     
     // User profile data
@@ -42,6 +43,12 @@ final class UserProfile {
     private(set) var completedModules: Int = 0
     private(set) var totalModules: Int = 20
     
+    // Streak tracking
+    private(set) var currentStreak: Int = 0
+    private(set) var longestStreak: Int = 0
+    private(set) var lastActivityDate: Date?
+    private(set) var streakFreeze: Int = 0 // Number of streak freezes available
+    
     // Update user profile with Google sign-in data
     func updateProfile(name: String?, email: String?, profilePictureURL: URL?, userId: String?, givenName: String? = nil, familyName: String? = nil, idToken: String? = nil) {
         self.displayName = name ?? "Anonymous User"
@@ -52,6 +59,9 @@ final class UserProfile {
         self.familyName = familyName
         self.idToken = idToken
         self.isLoggedIn = true
+        
+        // Record activity for streak
+        recordActivity()
         
         saveToUserDefaults()
     }
@@ -106,6 +116,9 @@ final class UserProfile {
             self.totalModules = totalModules
         }
         
+        // Record activity for streak
+        recordActivity()
+        
         saveToUserDefaults()
     }
     
@@ -131,6 +144,77 @@ final class UserProfile {
         saveToUserDefaults()
     }
     
+    // Streak management
+    
+    // Record user activity and update streak
+    func recordActivity() {
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        // If this is the first activity, initialize
+        if lastActivityDate == nil {
+            lastActivityDate = today
+            currentStreak = 1
+            longestStreak = max(longestStreak, currentStreak)
+            saveToUserDefaults()
+            return
+        }
+        
+        guard let lastActivity = lastActivityDate else { return }
+        let lastActivityDay = Calendar.current.startOfDay(for: lastActivity)
+        
+        // If already recorded activity today, just return
+        if lastActivityDay == today {
+            return
+        }
+        
+        // Calculate days between last activity and today
+        if let daysBetween = Calendar.current.dateComponents([.day], from: lastActivityDay, to: today).day {
+            if daysBetween == 1 {
+                // Next consecutive day, increment streak
+                currentStreak += 1
+                longestStreak = max(longestStreak, currentStreak)
+            } else if daysBetween == 2 && streakFreeze > 0 {
+                // Missed one day but have streak freeze
+                streakFreeze -= 1
+                currentStreak += 1
+                longestStreak = max(longestStreak, currentStreak)
+            } else {
+                // Streak broken
+                currentStreak = 1
+            }
+        }
+        
+        lastActivityDate = today
+        saveToUserDefaults()
+    }
+    
+    // Check and update streak on app launch
+    private func checkAndUpdateStreak() {
+        guard let lastActivity = lastActivityDate else { return }
+        
+        let today = Calendar.current.startOfDay(for: Date())
+        let lastActivityDay = Calendar.current.startOfDay(for: lastActivity)
+        
+        // If more than 1 day (or 2 with freeze) has passed without activity, reset streak
+        if let daysSinceLastActivity = Calendar.current.dateComponents([.day], from: lastActivityDay, to: today).day,
+           daysSinceLastActivity > 1 {
+            if daysSinceLastActivity == 2 && streakFreeze > 0 {
+                // Use streak freeze if available
+                streakFreeze -= 1
+            } else {
+                // Reset streak
+                currentStreak = 0
+                saveToUserDefaults()
+            }
+        }
+    }
+    
+    // Add streak freeze (could be earned or purchased)
+    func addStreakFreeze(count: Int = 1) {
+        streakFreeze += count
+        saveToUserDefaults()
+    }
+    
     // Save profile to UserDefaults
     private func saveToUserDefaults() {
         let userDefaults = UserDefaults.standard
@@ -146,6 +230,12 @@ final class UserProfile {
         userDefaults.set(eloRating, forKey: "userProfile_eloRating")
         userDefaults.set(completedModules, forKey: "userProfile_completedModules")
         userDefaults.set(totalModules, forKey: "userProfile_totalModules")
+        
+        // Save streak data
+        userDefaults.set(currentStreak, forKey: "userProfile_currentStreak")
+        userDefaults.set(longestStreak, forKey: "userProfile_longestStreak")
+        userDefaults.set(lastActivityDate, forKey: "userProfile_lastActivityDate")
+        userDefaults.set(streakFreeze, forKey: "userProfile_streakFreeze")
     }
     
     // Load profile from UserDefaults
@@ -171,5 +261,11 @@ final class UserProfile {
         completedModules = userDefaults.integer(forKey: "userProfile_completedModules")
         totalModules = userDefaults.integer(forKey: "userProfile_totalModules")
         if totalModules == 0 { totalModules = 20 } // Default value if not set
+        
+        // Load streak data
+        currentStreak = userDefaults.integer(forKey: "userProfile_currentStreak")
+        longestStreak = userDefaults.integer(forKey: "userProfile_longestStreak")
+        lastActivityDate = userDefaults.object(forKey: "userProfile_lastActivityDate") as? Date
+        streakFreeze = userDefaults.integer(forKey: "userProfile_streakFreeze")
     }
 } 

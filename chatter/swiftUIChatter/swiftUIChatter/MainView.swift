@@ -354,6 +354,7 @@ struct ProfileView: View {
     @State private var userProfile = UserProfile.shared
     @State private var showGoogleSignIn = false
     @State private var presentingViewControllerHolder: UIViewController?
+    @State private var fireAnimation = false
     
     var body: some View {
         ScrollView {
@@ -488,6 +489,143 @@ struct ProfileView: View {
                                 .font(.caption)
                                 .padding(.top, 6)
                         }
+                        
+                        // Streak circle with fire animation
+                        VStack {
+                            ZStack {
+                                // Animated gradient background
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [.orange, .red]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 80, height: 80)
+                                    .opacity(0.2)
+                                
+                                // Fire stroke with varying width for flame effect
+                                Circle()
+                                    .trim(from: 0, to: 0.8)
+                                    .stroke(
+                                        AngularGradient(
+                                            gradient: Gradient(colors: [.yellow, .orange, .red]),
+                                            center: .center,
+                                            startAngle: .degrees(0),
+                                            endAngle: .degrees(360)
+                                        ),
+                                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                                    )
+                                    .frame(width: 80, height: 80)
+                                    .rotationEffect(.degrees(-90))
+                                    .shadow(color: .orange.opacity(0.3), radius: 5, x: 0, y: 0)
+                                
+                                // Flames around the circle (visible when streak is high)
+                                if userProfile.currentStreak >= 5 {
+                                    ForEach(0..<8) { i in
+                                        Image(systemName: "flame.fill")
+                                            .foregroundColor(.orange)
+                                            .font(.system(size: 12))
+                                            .offset(
+                                                x: 45 * cos(Double(i) * .pi / 4),
+                                                y: 45 * sin(Double(i) * .pi / 4)
+                                            )
+                                            .opacity(fireAnimation ? 0.8 : 0.4)
+                                            .scaleEffect(fireAnimation ? 1.2 : 0.8)
+                                    }
+                                    .animation(
+                                        Animation.easeInOut(duration: 1.5)
+                                            .repeatForever(autoreverses: true),
+                                        value: fireAnimation
+                                    )
+                                    .onAppear {
+                                        fireAnimation = true
+                                    }
+                                }
+                                
+                                // Streak counter
+                                VStack(spacing: 2) {
+                                    Text("\(userProfile.currentStreak)")
+                                        .font(.title3)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(userProfile.currentStreak > 0 ? .primary : .secondary)
+                                    
+                                    Text("days")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                // Fire emblem for active streak
+                                if userProfile.currentStreak > 0 {
+                                    Image(systemName: "flame.fill")
+                                        .foregroundColor(.orange)
+                                        .font(.system(size: 16))
+                                        .offset(y: -28)
+                                        .opacity(fireAnimation ? 1.0 : 0.7)
+                                        .scaleEffect(fireAnimation ? 1.1 : 0.9)
+                                        .animation(
+                                            Animation.easeInOut(duration: 1.0)
+                                                .repeatForever(autoreverses: true),
+                                            value: fireAnimation
+                                        )
+                                }
+                                
+                                // Streak freeze indicator
+                                if userProfile.streakFreeze > 0 {
+                                    HStack(spacing: 1) {
+                                        Image(systemName: "snowflake")
+                                            .foregroundColor(.blue)
+                                            .font(.system(size: 10))
+                                        
+                                        Text("\(userProfile.streakFreeze)")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(4)
+                                    .background(Color.white.opacity(0.8))
+                                    .cornerRadius(10)
+                                    .offset(x: 30, y: 30)
+                                }
+                            }
+                            
+                            // Streak label with dynamic styling
+                            HStack(spacing: 2) {
+                                Text("Streak")
+                                    .font(.caption)
+                                
+                                if userProfile.currentStreak >= 7 {
+                                    Image(systemName: "checkmark.seal.fill")
+                                        .foregroundColor(.orange)
+                                        .font(.system(size: 10))
+                                }
+                            }
+                            .padding(.top, 6)
+                        }
+                        .onTapGesture {
+                            // Just for fun - add streak freeze on tap in preview/test mode
+                            #if DEBUG
+                            userProfile.addStreakFreeze()
+                            #endif
+                        }
+                    }
+                    
+                    // Longest streak badge
+                    if userProfile.longestStreak > 0 {
+                        HStack {
+                            Spacer()
+                            
+                            Text("Longest streak: \(userProfile.longestStreak) days")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+                            
+                            Spacer()
+                        }
+                        .padding(.top, 8)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -553,6 +691,12 @@ struct ProfileView: View {
                 // Implement Google Sign-In
                 handleGoogleSignIn()
             }
+        }
+        .onAppear {
+            // Just for testing/preview - simulate activity to update streak
+            #if DEBUG
+            userProfile.recordActivity()
+            #endif
         }
     }
     
