@@ -208,6 +208,49 @@ struct QuestionRow: View {
                     .padding()
                     .background(Color.secondary.opacity(0.05))
                     .cornerRadius(8)
+                    
+                    // Detailed Rubric Checklist
+                    if !question.checklistItems.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Detailed Evaluation Criteria:")
+                                .font(.subheadline.bold())
+                                .padding(.top, 8)
+                            
+                            ForEach(question.checklistItems) { item in
+                                HStack(alignment: .top, spacing: 10) {
+                                    Image(systemName: "checkmark.circle")
+                                        .foregroundColor(.blue)
+                                    Text(item.description)
+                                        .font(.caption)
+                                }
+                                .padding(.vertical, 2)
+                            }
+                            
+                            if !question.aiFeedbackPoints.isEmpty {
+                                Divider()
+                                    .padding(.vertical, 4)
+                                
+                                Text("Assessment Focus Areas:")
+                                    .font(.caption.bold())
+                                    .padding(.top, 4)
+                                
+                                ForEach(question.aiFeedbackPoints.indices, id: \.self) { index in
+                                    HStack(alignment: .top, spacing: 10) {
+                                        Text("\(index+1).")
+                                            .font(.caption.bold())
+                                            .foregroundColor(.purple)
+                                        Text(question.aiFeedbackPoints[index])
+                                            .font(.caption)
+                                            .italic()
+                                    }
+                                    .padding(.vertical, 1)
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color.blue.opacity(0.05))
+                        .cornerRadius(8)
+                    }
                 }
             }
         }

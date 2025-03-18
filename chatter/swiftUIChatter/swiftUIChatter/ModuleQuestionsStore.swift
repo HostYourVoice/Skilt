@@ -161,6 +161,22 @@ final class ModuleQuestionsStore {
             "Creativity and effectiveness": points / 4
         ]
         
+        // Extract detailed rubric items if available
+        var checklistItems: [ChecklistItem] = []
+        var aiFeedbackPoints: [String] = []
+        
+        if let rubric = module.rubric {
+            // Extract checklist items
+            if let items = rubric.checklistItems {
+                checklistItems = items.map { ChecklistItem(id: $0.id, description: $0.description) }
+            }
+            
+            // Extract AI feedback points
+            if let feedbackPoints = rubric.aiFeedbackPoints {
+                aiFeedbackPoints = feedbackPoints
+            }
+        }
+        
         // Format question based on requirements
         let requirementsText = scenario.requirements.map { "- \($0)" }.joined(separator: "\n")
         let questionText = """
@@ -189,7 +205,9 @@ final class ModuleQuestionsStore {
                 difficulty: difficulty,
                 points: points,
                 altRow: false,
-                rubricPoints: rubricPoints
+                rubricPoints: rubricPoints,
+                checklistItems: checklistItems,
+                aiFeedbackPoints: aiFeedbackPoints
             )
         )
         
@@ -262,7 +280,9 @@ final class ModuleQuestionsStore {
                     difficulty: difficulty,
                     points: points,
                     altRow: i % 2 == 1,
-                    rubricPoints: rubricPoints
+                    rubricPoints: rubricPoints,
+                    checklistItems: [],
+                    aiFeedbackPoints: []
                 )
             )
         }

@@ -36,7 +36,18 @@ struct ModuleInfo: Codable {
     let difficulty: DifficultyInfo
     let requiredEloRating: Int
     let scenario: ScenarioInfo?
+    let rubric: RubricInfo?
     // Other fields omitted for brevity
+}
+
+struct RubricInfo: Codable {
+    let aiFeedbackPoints: [String]?
+    let checklistItems: [ChecklistItemInfo]?
+}
+
+struct ChecklistItemInfo: Codable {
+    let id: String
+    let description: String
 }
 
 struct ScenarioInfo: Codable {

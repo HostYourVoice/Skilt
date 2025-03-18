@@ -21,4 +21,14 @@ struct ModuleQuestion: Identifiable {
     
     // A rubric for evaluating free-text submissions
     let rubricPoints: [String: Int]
+    
+    // Detailed rubric criteria
+    let checklistItems: [ChecklistItem]
+    let aiFeedbackPoints: [String]
+}
+
+// Struct for detailed checklist items
+struct ChecklistItem: Identifiable {
+    let id: String
+    let description: String
 } 
