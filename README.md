@@ -1,13 +1,5 @@
-# EECS 441
+# EECS 441 Wordsmith Mobile Team
 
 ## Team Members
 
-- Chatter Lab: no team members
-- Audio Lab: Amulya Parmar (<amulya@umich.edu>) Gideon Shaked (<gshaked@umich.edu>)
-- Signin Lab:Amulya Parmar (<amulya@umich.edu>) Gideon Shaked (<gshaked@umich.edu>)
-
-## Server Login Information
-
-- IP Address: `24.199.89.71`
-- Username: `ubuntu` or `root`
-- Password: `eecs441` (same for both users)
+<img width="525" alt="Screenshot 2025-03-18 at 12 15 01 AM" src="https://github.com/user-attachments/assets/51aabf7e-896a-4fb6-a7f5-d372f37999b8" />
