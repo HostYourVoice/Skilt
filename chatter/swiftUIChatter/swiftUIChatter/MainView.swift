@@ -351,23 +351,76 @@ struct EnhancedCourseListRow: View {
 
 // Profile View
 struct ProfileView: View {
+    @State private var userProfile = UserProfile.shared
+    @State private var showGoogleSignIn = false
+    @State private var presentingViewControllerHolder: UIViewController?
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Profile header with avatar
                 VStack(spacing: 16) {
-                    Image(systemName: "person.circle.fill")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 100, height: 100)
-                        .foregroundColor(.blue)
+                    // Profile picture - show user's picture if available, otherwise show placeholder
+                    if let profileURL = userProfile.profilePictureURL {
+                        AsyncImage(url: profileURL) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 100, height: 100)
+                                .clipShape(Circle())
+                        } placeholder: {
+                            ProgressView()
+                                .frame(width: 100, height: 100)
+                        }
+                    } else {
+                        Image(systemName: "person.circle.fill")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.blue)
+                    }
                     
-                    Text("User Profile")
+                    // Display name
+                    Text(userProfile.displayName)
                         .font(.title)
                         .fontWeight(.bold)
                     
-                    Text("User information will be displayed here")
-                        .foregroundColor(.secondary)
+                    // Email if available
+                    if let email = userProfile.email {
+                        Text(email)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Sign in/out button
+                    if userProfile.isLoggedIn {
+                        Button(action: {
+                            // Use GoogleSignInHelper to sign out
+                            GoogleSignInHelper.shared.signOut()
+                        }) {
+                            Text("Sign Out")
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: 200)
+                                .padding(.vertical, 10)
+                                .background(Color.red)
+                                .cornerRadius(8)
+                        }
+                    } else {
+                        Button(action: {
+                            showGoogleSignIn = true
+                        }) {
+                            HStack {
+                                Image(systemName: "g.circle.fill")
+                                    .foregroundColor(.blue)
+                                Text("Sign in with Google")
+                                    .fontWeight(.medium)
+                            }
+                            .frame(maxWidth: 200)
+                            .padding(.vertical, 10)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        }
+                    }
                 }
                 .padding(.top, 40)
                 
@@ -391,7 +444,7 @@ struct ProfileView: View {
                                     .rotationEffect(.degrees(-90))
                                 
                                 VStack(spacing: 2) {
-                                    Text("1540")
+                                    Text("\(userProfile.eloRating)")
                                         .font(.title3)
                                         .fontWeight(.bold)
                                     
@@ -413,14 +466,15 @@ struct ProfileView: View {
                                     .stroke(Color.green.opacity(0.2), lineWidth: 10)
                                     .frame(width: 80, height: 80)
                                 
+                                let progress = Float(userProfile.completedModules) / Float(userProfile.totalModules)
                                 Circle()
-                                    .trim(from: 0, to: 0.35)
+                                    .trim(from: 0, to: CGFloat(progress))
                                     .stroke(Color.green, lineWidth: 10)
                                     .frame(width: 80, height: 80)
                                     .rotationEffect(.degrees(-90))
                                 
                                 VStack(spacing: 2) {
-                                    Text("7/20")
+                                    Text("\(userProfile.completedModules)/\(userProfile.totalModules)")
                                         .font(.title3)
                                         .fontWeight(.bold)
                                     
@@ -442,11 +496,110 @@ struct ProfileView: View {
                 .cornerRadius(12)
                 .padding(.horizontal)
                 
+                // ChatterID Section
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("ChatterID Information")
+                        .font(.headline)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let chatterId = userProfile.chatterId {
+                            HStack {
+                                Text("ChatterID:")
+                                    .fontWeight(.medium)
+                                
+                                Text(chatterId)
+                                    .foregroundColor(.secondary)
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    UIPasteboard.general.string = chatterId
+                                }) {
+                                    Image(systemName: "doc.on.doc")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            
+                            HStack {
+                                Text("Expires:")
+                                    .fontWeight(.medium)
+                                
+                                Text(userProfile.chatterIdExpiration, style: .date)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            Text("No ChatterID available. Please sign in.")
+                                .foregroundColor(.secondary)
+                                .italic()
+                        }
+                    }
+                    .padding()
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(8)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(12)
+                .padding(.horizontal)
+                
                 Spacer()
             }
         }
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: showGoogleSignIn) { _, newValue in
+            if newValue {
+                // Implement Google Sign-In
+                handleGoogleSignIn()
+            }
+        }
+    }
+    
+    private func handleGoogleSignIn() {
+        showGoogleSignIn = false
+        
+        // Create a temporary UIViewController to act as the presenting controller
+        let hostingController = UIHostingController(rootView: EmptyView())
+        
+        // Find the root view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first,
+           let rootViewController = window.rootViewController {
+            
+            // Add the temporary controller as a child of the root
+            rootViewController.addChild(hostingController)
+            rootViewController.view.addSubview(hostingController.view)
+            hostingController.view.frame = .zero
+            hostingController.didMove(toParent: rootViewController)
+            
+            // Store the reference to remove it later
+            self.presentingViewControllerHolder = hostingController
+            
+            // Use the GoogleSignInHelper
+            GoogleSignInHelper.shared.signIn(presentingViewController: rootViewController) { success in
+                // Remove the temporary controller
+                hostingController.willMove(toParent: nil)
+                hostingController.view.removeFromSuperview()
+                hostingController.removeFromParent()
+                self.presentingViewControllerHolder = nil
+                
+                // Handle sign-in result if needed
+                if success {
+                    print("Successfully signed in with Google")
+                } else {
+                    print("Failed to sign in with Google")
+                }
+            }
+        }
+    }
+}
+
+// Empty view for hosting controller
+struct EmptyView: View {
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
     }
 }
 
@@ -610,15 +763,36 @@ struct LearningTreeView: View {
                 }
                 
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button { 
-                        Task {
-                            await ChatterID.shared.open()
-                            isPresenting.toggle()
+                    if UserProfile.shared.isLoggedIn {
+                        // Show user is logged in
+                        NavigationLink(destination: ProfileView()) {
+                            if let profileURL = UserProfile.shared.profilePictureURL {
+                                AsyncImage(url: profileURL) { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                        .frame(width: 30, height: 30)
+                                        .clipShape(Circle())
+                                } placeholder: {
+                                    Image(systemName: "person.circle.fill")
+                                        .foregroundColor(.blue)
+                                }
+                            } else {
+                                Image(systemName: "person.circle.fill")
+                                    .foregroundColor(.blue)
+                            }
                         }
-                    } label: {
-                        Text("Sign In")
-                            .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                    } else {
+                        Button { 
+                            Task {
+                                await ChatterID.shared.open()
+                                isPresenting.toggle()
+                            }
+                        } label: {
+                            Text("Sign In")
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                        }
                     }
                 }
             }
@@ -897,6 +1071,7 @@ struct LearningTreeView: View {
 
 struct MainView: View {
     @State private var selectedTab = 1  // Default to Learning tab
+    @State private var isRestoringSignIn = true
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -959,6 +1134,21 @@ struct MainView: View {
             // For bottom safe area (iPhone X and later)
             if #available(iOS 15.0, *) {
                 UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
+            }
+            
+            // Restore previous sign-in
+            if isRestoringSignIn {
+                GoogleSignInHelper.shared.restorePreviousSignIn { success in
+                    isRestoringSignIn = false
+                    if success {
+                        print("Successfully restored Google Sign-In")
+                    } else {
+                        // Restore ChatterID from keychain
+                        Task {
+                            await ChatterID.shared.open()
+                        }
+                    }
+                }
             }
         }
     }
