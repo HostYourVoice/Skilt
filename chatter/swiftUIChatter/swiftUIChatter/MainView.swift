@@ -603,6 +603,12 @@ struct LearningTreeView: View {
             .navigationTitle("Learning Tree")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Wordsmith")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                }
+                
                 ToolbarItem(placement:.topBarTrailing) {
                     Button { 
                         Task {
@@ -610,7 +616,9 @@ struct LearningTreeView: View {
                             isPresenting.toggle()
                         }
                     } label: {
-                        Image(systemName: "square.and.pencil")
+                        Text("Sign In")
+                            .fontWeight(.medium)
+                            .foregroundColor(.blue)
                     }
                 }
             }
