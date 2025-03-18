@@ -96,15 +96,7 @@ final class SubmissionStore: @unchecked Sendable {
             for submission in submissionsReceived {
                 let formattedDate = formatDate(submission.created_at)
                 
-                // Create username with score and user information if available
                 var username = "#\(submission.id)"
-                
-                // Add user information if available
-                if let userName = submission.user_name {
-                    username = "\(userName) (#\(submission.id))"
-                } else if let userEmail = submission.user_email {
-                    username = "\(userEmail) (#\(submission.id))"
-                }
                 
                 // Add score if available
                 if let scoring = submission.scoring, let score = scoring.score, let scoreMax = scoring.scoreMax {
