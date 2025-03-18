@@ -116,39 +116,44 @@ struct CategoryView: View {
     let sortOption: LearningTreeView.SortOption
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             // Category title with icon
             HStack {
                 Image(systemName: categoryIcon(for: category.name))
-                    .foregroundColor(categoryColor(for: category.name))
+                    .foregroundColor(.white)
+                    .padding(8)
+                    .background(categoryColor(for: category.name))
+                    .cornerRadius(10)
                     .font(.headline)
                 
                 Text(category.name)
                     .font(.headline)
-                    .foregroundColor(categoryColor(for: category.name))
+                    .foregroundColor(.primary)
                 
                 Spacer()
                 
-                // Module count badge
-                Text("\(category.courses.count)")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(categoryColor(for: category.name).opacity(0.8))
-                    .cornerRadius(12)
+                // Badge count
+                ZStack {
+                    Circle()
+                        .fill(Color.secondary.opacity(0.2))
+                        .frame(width: 30, height: 30)
+                    
+                    Text("\(category.courses.count)")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primary)
+                }
             }
             
-            // Always show both metrics
-            HStack(spacing: 12) {
+            // Metrics row
+            HStack(spacing: 20) {
                 // Difficulty metric
                 HStack(spacing: 4) {
                     Image(systemName: "bolt")
                         .foregroundColor(.blue)
-                        .font(.caption)
+                        .font(.footnote)
                     Text("Difficulty: \(String(format: "%.1f", category.averageDifficulty))")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundColor(.secondary)
                 }
                 
@@ -156,9 +161,9 @@ struct CategoryView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "trophy")
                         .foregroundColor(.orange)
-                        .font(.caption)
+                        .font(.footnote)
                     Text("Min ELO: \(category.minEloRequired)")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundColor(.secondary)
                 }
                 
@@ -166,29 +171,35 @@ struct CategoryView: View {
             }
             
             // Visual difficulty indicator
-            difficultyIndicator(level: Int(category.averageDifficulty.rounded()))
-                .padding(.top, 2)
+            HStack(spacing: 2) {
+                ForEach(1...4, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(index <= Int(category.averageDifficulty.rounded()) ? categoryColor(for: category.name) : Color.secondary.opacity(0.15))
+                        .frame(width: 36, height: 5)
+                }
+            }
+            .padding(.top, 4)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
     
     // Return appropriate icon for category
     private func categoryIcon(for category: String) -> String {
         switch category.lowercased() {
         case let name where name.contains("email"):
-            return "envelope.fill"
+            return "envelope"
         case let name where name.contains("copywriting"):
-            return "doc.text.fill"
+            return "doc.text"
         case let name where name.contains("marketing"):
-            return "megaphone.fill"
+            return "megaphone"
         case let name where name.contains("creative"):
-            return "paintbrush.fill"
+            return "paintbrush"
         case let name where name.contains("technical"):
-            return "gear.fill"
-        case let name where name.contains("social"):
-            return "bubble.left.and.bubble.right.fill"
+            return "gear"
+        case let name where name.contains("social") || name.contains("network"):
+            return "person.2"
         default:
-            return "book.fill"
+            return "book"
         }
     }
     
@@ -205,21 +216,10 @@ struct CategoryView: View {
             return .pink
         case let name where name.contains("technical"):
             return .gray
-        case let name where name.contains("social"):
-            return .green
-        default:
+        case let name where name.contains("social") || name.contains("network"):
             return .indigo
-        }
-    }
-    
-    // Visual difficulty indicator
-    private func difficultyIndicator(level: Int) -> some View {
-        HStack(spacing: 3) {
-            ForEach(1...5, id: \.self) { index in
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(index <= level ? categoryColor(for: category.name) : Color.secondary.opacity(0.2))
-                    .frame(width: 16, height: 5)
-            }
+        default:
+            return .teal
         }
     }
 }
@@ -231,78 +231,72 @@ struct EnhancedCourseListRow: View {
     var onCourseSelected: (Course) -> Void
     
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 16) {
             // Left side - course icon based on difficulty
             ZStack {
                 Circle()
-                    .fill(difficultyColor().opacity(0.8))
-                    .frame(width: 44, height: 44)
+                    .fill(difficultyColor().opacity(0.9))
+                    .frame(width: 40, height: 40)
                 
                 Image(systemName: difficultyIcon())
                     .foregroundColor(.white)
-                    .font(.system(size: 18))
+                    .font(.system(size: 16))
             }
             
             // Middle - course info
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(course.code)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.1))
-                        .cornerRadius(4)
-                    
-                    Spacer()
-                }
-                
+            VStack(alignment: .leading, spacing: 4) {
                 Text(course.name)
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
                 
-                // Bottom row with metrics
                 HStack {
-                    // Instructor
+                    // Course code
+                    Text(course.code)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    // Instructor in smaller text
                     HStack(spacing: 4) {
-                        Image(systemName: "person.fill")
-                            .foregroundColor(.secondary)
-                            .font(.system(size: 10))
                         Text(course.instructor)
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
-                    
-                    Spacer()
-                    
-                    // Metrics row - always show both metrics side by side
-                    HStack(spacing: 8) {
-                        // Difficulty visual meter
-                        HStack(spacing: 1) {
-                            ForEach(1...course.maxDifficulty, id: \.self) { index in
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(index <= course.difficulty ? difficultyColor() : Color.secondary.opacity(0.2))
-                                    .frame(width: 8, height: 8)
-                            }
-                        }
-                        
-                        // ELO requirement
-                        HStack(spacing: 2) {
-                            Image(systemName: "trophy")
-                                .foregroundColor(.orange)
-                                .font(.system(size: 9))
+                }
+                
+                HStack(spacing: 16) {
+                    // Difficulty indicator with text
+                    HStack(spacing: 6) {
+                        Image(systemName: "bolt")
+                            .foregroundColor(.blue)
+                            .font(.caption2)
                             
-                            Text("\(course.eloRequired)")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.orange)
-                        }
+                        Text("Difficulty: \(course.difficulty)/\(course.maxDifficulty)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // ELO indicator with text
+                    HStack(spacing: 6) {
+                        Image(systemName: "trophy")
+                            .foregroundColor(.orange)
+                            .font(.caption2)
+                            
+                        Text("Min ELO: \(course.eloRequired)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
+            
+            // Right side - chevron indicator
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
         .contentShape(Rectangle())  // Make the entire area tappable
         .onTapGesture {
             onCourseSelected(course)
@@ -329,13 +323,13 @@ struct EnhancedCourseListRow: View {
         let ratio = Double(course.difficulty) / Double(course.maxDifficulty)
         switch ratio {
         case 0..<0.3:
-            return "1.circle.fill"
+            return "1.circle"
         case 0.3..<0.6:
-            return "2.circle.fill"
+            return "2.circle" 
         case 0.6..<0.8:
-            return "3.circle.fill"
+            return "3.circle"
         default:
-            return "bolt.fill"
+            return "bolt"
         }
     }
 }
@@ -575,26 +569,14 @@ struct LearningTreeView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Sort picker
-                Picker("Sort By", selection: $sortOption) {
-                    ForEach(SortOption.allCases) { option in
-                        Text(option.rawValue).tag(option)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
-                .background(Color(.systemBackground))
-                .onChange(of: sortOption) { _ in
-                    sortCoursesBySelectedOption()
-                }
-                
                 // Search field
                 TextField("Search modules", text: $searchText)
-                    .padding(8)
+                    .padding(10)
                     .background(Color(.systemGray6))
-                    .cornerRadius(8)
+                    .cornerRadius(10)
                     .padding(.horizontal)
-                    .padding(.bottom)
+                    .padding(.top, 10)
+                    .padding(.bottom, 10)
                 
                 // Course tree
                 if filteredCategories.isEmpty {
@@ -655,6 +637,7 @@ struct LearningTreeView: View {
     // Main course tree view
     private var courseTreeView: some View {
         List {
+            // Header section for categories
             Section {
                 ForEach(filteredCategories) { category in
                     VStack(spacing: 0) {
@@ -670,7 +653,7 @@ struct LearningTreeView: View {
                                 }
                             ),
                             content: {
-                                VStack(spacing: 2) {
+                                VStack(spacing: 4) {
                                     ForEach(category.courses) { course in
                                         EnhancedCourseListRow(
                                             course: course,
@@ -679,11 +662,7 @@ struct LearningTreeView: View {
                                                 selectedCourse = course
                                             }
                                         )
-                                        .padding(.horizontal, 8)
                                         .padding(.vertical, 6)
-                                        .background(Color(course.altRow ?
-                                            .systemGray6 : .systemGray5).opacity(0.6))
-                                        .cornerRadius(8)
                                     }
                                 }
                                 .padding(.top, 8)
@@ -692,32 +671,75 @@ struct LearningTreeView: View {
                                 CategoryView(category: category, sortOption: sortOption)
                             }
                         )
-                        .padding(.horizontal, 4)
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                 }
             } header: {
-                HStack {
-                    Text("Course Categories")
-                        .font(.headline)
-                    Spacer()
-                    Text("Sorted by: \(sortOption.rawValue)")
-                        .font(.caption)
+                HStack(spacing: 0) {
+                    Text("COURSE CATEGORIES")
+                        .textCase(.uppercase)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
                         .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    // Sort dropdown menu
+                    Menu {
+                        ForEach(SortOption.allCases) { option in
+                            Button(action: {
+                                sortOption = option
+                                sortCoursesBySelectedOption()
+                            }) {
+                                HStack {
+                                    Text(option.rawValue)
+                                    
+                                    if sortOption == option {
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("SORTED BY:")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            
+                            Text(sortOption.rawValue.uppercased())
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.blue)
+                            
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
                 }
-                .padding(.bottom, 8)
+                .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
             }
             
-            Section(header: Text("My Wordsmith Submissions").font(.headline)) {
+            // Submissions section
+            Section {
                 ForEach(store.chatts) { chatt in
                     ChattListRow(chatt: chatt)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color(chatt.altRow ?
                             .systemGray5 : .systemGray6))
                 }
+            } header: {
+                Text("MY WORDSMITH SUBMISSIONS")
+                    .textCase(.uppercase)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                    .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
             }
         }
-        .listStyle(.insetGrouped) // Change back to insetGrouped for better section separation
+        .listStyle(GroupedListStyle())
         .refreshable {
             await store.getChatts()
             loadCourseData()
@@ -892,3 +914,5 @@ struct MainView: View {
 #Preview {
     MainView()
 }
+
+
