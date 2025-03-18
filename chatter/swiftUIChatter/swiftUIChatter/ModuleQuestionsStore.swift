@@ -64,14 +64,14 @@ final class ModuleQuestionsStore {
     func submitResponse(for questionId: UUID, text: String) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        // Store the submission
+        // Store the submission locally
         submissions[questionId] = text
         submissionStatuses[questionId] = .submitted
         
         // Save submission to Supabase
+        let submissionWithContext = "\(course.name) - \(course.code):\n\(text)"
         Task {
-            let submissionText = "\(course.name) - \(course.code):\n\(text)"
-            let success = await ChattStore.shared.upsertSubmission(submissionText: submissionText)
+            let success = await ChattStore.shared.upsertSubmission(submissionText: submissionWithContext)
             if !success {
                 print("Failed to save submission to Supabase")
             }
@@ -95,6 +95,30 @@ final class ModuleQuestionsStore {
                 
                 // Update status
                 self.submissionStatuses[questionId] = .completed(score: score, feedback: feedback)
+                
+                // Save the scoring data to Supabase
+                Task {
+                    // Create the scoring JSON object
+                    let scoringData: [String: Any] = [
+                        "score": score,
+                        "scoreMax": maxPoints,
+                        "feedback": feedback
+                    ]
+                    
+                    // Get the submission text that was previously saved
+                    guard let submissionText = self.submissions[questionId] else { return }
+                    
+                    // Update the submission with scoring data
+                    let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
+                    let success = await ChattStore.shared.upsertSubmission(
+                        submissionText: submissionWithContext, 
+                        scoringData: scoringData
+                    )
+                    
+                    if !success {
+                        print("Failed to save scoring data to Supabase")
+                    }
+                }
             }
         }
     }

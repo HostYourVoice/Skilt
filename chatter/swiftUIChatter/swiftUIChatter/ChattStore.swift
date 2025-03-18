@@ -59,8 +59,15 @@ final class ChattStore: @unchecked Sendable {
             var _chatts = [Chatt]()
             for submission in submissionsReceived {
                 let formattedDate = formatDate(submission.created_at)
+                
+                // Create username with score if available
+                var username = "#\(submission.id)"
+                if let scoring = submission.scoring, let score = scoring.score, let scoreMax = scoring.scoreMax {
+                    username = "#\(submission.id) (\(score)/\(scoreMax))"
+                }
+                
                 _chatts.append(Chatt(
-                    username: "#\(submission.id)",
+                    username: username,
                     message: submission.submission_str,
                     id: UUID(),
                     timestamp: formattedDate,
@@ -185,12 +192,17 @@ final class ChattStore: @unchecked Sendable {
 
 // Add a new function to insert a submission to Supabase
 extension ChattStore {
-    func upsertSubmission(submissionText: String, userId: String? = nil) async -> Bool {
+    func upsertSubmission(submissionText: String, userId: String? = nil, scoringData: [String: Any]? = nil) async -> Bool {
         // Prepare the submission data
-        let submission = [
+        var submission: [String: Any] = [
             "submission_str": submissionText,
             "user_id": userId ?? ChatterID.shared.id ?? "anonymous"
-        ] as [String: Any]
+        ]
+        
+        // Add scoring data if provided
+        if let scoringData = scoringData {
+            submission["scoring"] = scoringData
+        }
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: submission) else {
             print("upsertSubmission: JSON serialization error")
@@ -240,14 +252,35 @@ struct SubmissionData: Codable {
     let created_at: String
     let submission_str: String
     let user_id: String?
-    let scoring: EmptyJSONObject?
+    let scoring: ScoringData?
     
     enum CodingKeys: String, CodingKey {
         case id, created_at, submission_str, user_id, scoring
     }
 }
 
-// Type to handle empty JSON objects
+// Structured scoring data
+struct ScoringData: Codable {
+    let score: Int?
+    let scoreMax: Int?
+    let feedback: String?
+    
+    // This init is needed for decoding empty JSON objects
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // All fields are optional
+        score = try container.decodeIfPresent(Int.self, forKey: .score)
+        scoreMax = try container.decodeIfPresent(Int.self, forKey: .scoreMax)
+        feedback = try container.decodeIfPresent(String.self, forKey: .feedback)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case score, scoreMax, feedback
+    }
+}
+
+// Type to handle empty JSON objects - keeping for backward compatibility
 struct EmptyJSONObject: Codable {
     // This is an empty struct to represent an empty JSON object
     // It will allow the decoder to handle {} in the JSON
