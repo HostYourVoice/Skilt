@@ -68,6 +68,9 @@ final class UserProfile {
     
     // Update from Google Sign-In
     func updateFromGoogleUser(_ googleUser: GIDGoogleUser) {
+        // Reset all profile data to defaults before updating
+        resetProfileData()
+        
         let email = googleUser.profile?.email
         let fullName = googleUser.profile?.name
         let givenName = googleUser.profile?.givenName
@@ -109,6 +112,54 @@ final class UserProfile {
                 email: email ?? "",
                 profilePicture: profilePicURL?.absoluteString
             )
+        }
+    }
+    
+    // Reset all profile data to default values
+    private func resetProfileData() {
+        // Reset basic profile info
+        displayName = "Anonymous User"
+        email = nil
+        profilePictureURL = nil
+        isLoggedIn = false
+        userId = nil
+        givenName = nil
+        familyName = nil
+        idToken = nil
+        
+        // Reset stats to default values
+        eloRating = 100  // Reset to initial default
+        completedModules = 0
+        totalModules = 5
+        
+        // Reset streak data
+        currentStreak = 0
+        longestStreak = 0
+        lastActivityDate = nil
+        streakFreeze = 0
+        
+        // Clear UserDefaults for all profile keys
+        let userDefaults = UserDefaults.standard
+        let keysToRemove = [
+            "userProfile_displayName",
+            "userProfile_email",
+            "userProfile_profilePictureURL",
+            "userProfile_isLoggedIn",
+            "userProfile_userId",
+            "userProfile_givenName",
+            "userProfile_familyName",
+            "userProfile_idToken",
+            "userProfile_eloRating",
+            "userProfile_completedModules",
+            "userProfile_totalModules",
+            "userProfile_currentStreak",
+            "userProfile_longestStreak",
+            "userProfile_lastActivityDate",
+            "userProfile_streakFreeze"
+        ]
+        
+        for key in keysToRemove {
+            userDefaults.removeObject(forKey: key)
         }
     }
     
@@ -266,7 +317,7 @@ final class UserProfile {
         idToken = userDefaults.string(forKey: "userProfile_idToken")
         
         eloRating = userDefaults.integer(forKey: "userProfile_eloRating")
-        if eloRating == 0 { eloRating = 100 } // Default value if not set
+        if eloRating == 0 { eloRating = 101 } // Default value if not set
         
         completedModules = userDefaults.integer(forKey: "userProfile_completedModules")
         totalModules = userDefaults.integer(forKey: "userProfile_totalModules")
