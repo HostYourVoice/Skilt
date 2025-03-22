@@ -13,6 +13,11 @@ import os
 @Observable
 final class SubmissionStore: @unchecked Sendable {
     
+    // Add streak properties
+    private(set) var currentStreak: Int = 0
+    private(set) var largestStreak: Int = 0
+    private var lastSubmissionDate: Date?
+    
     func getSubmissions() async {
         print("DEBUG: Starting getSubmissions()") // Debug logging
         
@@ -116,6 +121,9 @@ final class SubmissionStore: @unchecked Sendable {
             print("DEBUG: Created \(_submissions.count) submission objects") // Debug logging
             
             self.submissions = _submissions
+            
+            // Update streak after receiving submissions
+            updateSubmissionStreak()
             
             print("DEBUG: Updated store.submissions with \(self.submissions.count) items") // Debug logging
         } catch {
@@ -257,6 +265,75 @@ final class SubmissionStore: @unchecked Sendable {
         // Call the UserProfile method to update the exercise score
         UserProfile.shared.updateExerciseScore(exerciseId: exerciseId, score: score)
     }
+
+    // Add function to calculate and update submission streak
+    private func updateSubmissionStreak() {
+        guard !submissions.isEmpty else {
+            currentStreak = 0
+            return
+        }
+        
+        // Group submissions by date
+        let calendar = Calendar.current
+        var submissionDates = [Date]()
+        
+        for submission in submissions {
+            if let timestamp = submission.timestamp, let date = parseSubmissionDate(timestamp) {
+                submissionDates.append(date)
+            }
+        }
+        
+        // Sort dates from newest to oldest
+        submissionDates.sort(by: >)
+        
+        // Calculate current streak
+        var streak = 1
+        let today = calendar.startOfDay(for: Date())
+        
+        // Reset streak if no submissions today or yesterday
+        if let mostRecentDate = submissionDates.first {
+            let mostRecentDay = calendar.startOfDay(for: mostRecentDate)
+            let dayDifference = calendar.dateComponents([.day], from: mostRecentDay, to: today).day ?? 0
+            
+            if dayDifference > 1 {
+                // Streak broken - more than 1 day since last submission
+                currentStreak = 0
+                lastSubmissionDate = mostRecentDate
+                return
+            }
+        }
+        
+        // Calculate consecutive days
+        for i in 0..<submissionDates.count-1 {
+            let currentDate = calendar.startOfDay(for: submissionDates[i])
+            let nextDate = calendar.startOfDay(for: submissionDates[i+1])
+            
+            let daysBetween = calendar.dateComponents([.day], from: nextDate, to: currentDate).day ?? 0
+            
+            if daysBetween == 1 {
+                // Consecutive day
+                streak += 1
+            } else if daysBetween > 1 {
+                // Streak broken
+                break
+            }
+        }
+        
+        currentStreak = streak
+        if currentStreak > largestStreak {
+            largestStreak = currentStreak
+        }
+        
+        lastSubmissionDate = submissionDates.first
+    }
+    
+    // Helper function to parse a submission timestamp string into a Date
+    private func parseSubmissionDate(_ dateString: String) -> Date? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .short
+        return dateFormatter.date(from: dateString)
+    }
 }
 
 // Add a new function to insert a submission to Supabase
@@ -322,6 +399,9 @@ extension SubmissionStore {
                 if !success {
                     print("upsertSubmission: HTTP STATUS: \(httpStatus.statusCode)")
                 } else {
+                    // Update streak after successful submission
+                    await getSubmissions() // Refresh submissions to update streak
+                    
                     // If submission was successful and we have exercise ID and scoring data
                     if let exerciseId = exerciseId, 
                        let scoringData = scoringData,

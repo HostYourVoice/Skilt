@@ -384,6 +384,7 @@ struct EnhancedCourseListRow: View {
 // Profile View
 struct ProfileView: View {
     @State private var userProfile = UserProfile.shared
+    @State private var store = SubmissionStore.shared
     @State private var showGoogleSignIn = false
     @State private var presentingViewControllerHolder: UIViewController?
     @State private var fireAnimation = false
@@ -554,7 +555,7 @@ struct ProfileView: View {
                                     .shadow(color: .orange.opacity(0.3), radius: 5, x: 0, y: 0)
                                 
                                 // Flames around the circle (visible when streak is high)
-                                if userProfile.currentStreak >= 5 {
+                                if store.currentStreak >= 5 {
                                     ForEach(0..<8) { i in
                                         Image(systemName: "flame.fill")
                                             .foregroundColor(.orange)
@@ -578,10 +579,10 @@ struct ProfileView: View {
                                 
                                 // Streak counter
                                 VStack(spacing: 1) {
-                                    Text("\(userProfile.currentStreak)")
+                                    Text("\(store.currentStreak)")
                                         .font(.title3)
                                         .fontWeight(.bold)
-                                        .foregroundColor(userProfile.currentStreak > 0 ? .primary : .secondary)
+                                        .foregroundColor(store.currentStreak > 0 ? .primary : .secondary)
                                     
                                     Text("days")
                                         .font(.caption)
@@ -589,7 +590,7 @@ struct ProfileView: View {
                                 }
                                 
                                 // Fire emblem for active streak
-                                if userProfile.currentStreak > 0 {
+                                if store.currentStreak > 0 {
                                     Image(systemName: "flame.fill")
                                         .foregroundColor(.orange)
                                         .font(.system(size: 16))
@@ -626,7 +627,7 @@ struct ProfileView: View {
                                 Text("Streak")
                                     .font(.caption)
                                 
-                                if userProfile.currentStreak >= 7 {
+                                if store.currentStreak >= 7 {
                                     Image(systemName: "checkmark.seal.fill")
                                         .foregroundColor(.orange)
                                         .font(.system(size: 10))
@@ -643,11 +644,11 @@ struct ProfileView: View {
                     }
                     
                     // Longest streak badge
-                    if userProfile.longestStreak > 0 {
+                    if store.largestStreak > 0 {
                         HStack {
                             Spacer()
                             
-                            Text("Longest streak: \(userProfile.longestStreak) days")
+                            Text("Longest streak: \(store.largestStreak) days")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal, 10)
@@ -725,6 +726,11 @@ struct ProfileView: View {
             }
         }
         .onAppear {
+            // Refresh submissions to update streak when profile view appears
+            Task {
+                await store.getSubmissions()
+            }
+            
             // Just for testing/preview - simulate activity to update streak
             #if DEBUG
             userProfile.recordActivity()
