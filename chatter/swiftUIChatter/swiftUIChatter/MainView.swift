@@ -336,7 +336,10 @@ struct EnhancedCourseListRow: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 10)
-        .background(isLocked ? Color.gray.opacity(0.1) : Color(.systemBackground))
+        .background(
+            isLocked ? Color.gray.opacity(0.1) :
+            (score != nil ? Color.green.opacity(0.1) : Color(.systemBackground))
+        )
         .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .contentShape(Rectangle())  // Make the entire area tappable
