@@ -523,10 +523,10 @@ struct ProfileView: View {
                                 .padding(.top, 6)
                         }
                         
-                        // Streak circle with fire animation
+                        // Streak circle with fire animation - modify to handle logged out state
                         VStack {
                             ZStack {
-                                // Animated gradient background
+                                // Animated gradient background - dimmed when not logged in
                                 Circle()
                                     .fill(
                                         LinearGradient(
@@ -536,7 +536,7 @@ struct ProfileView: View {
                                         )
                                     )
                                     .frame(width: 80, height: 80)
-                                    .opacity(0.2)
+                                    .opacity(userProfile.isLoggedIn ? 0.2 : 0.1)
                                 
                                 // Fire stroke with varying width for flame effect
                                 Circle()
@@ -553,9 +553,10 @@ struct ProfileView: View {
                                     .frame(width: 80, height: 80)
                                     .rotationEffect(.degrees(-90))
                                     .shadow(color: .orange.opacity(0.3), radius: 5, x: 0, y: 0)
+                                    .opacity(userProfile.isLoggedIn ? 1.0 : 0.3)
                                 
-                                // Flames around the circle (visible when streak is high)
-                                if store.currentStreak >= 5 {
+                                // Flames around the circle (visible when streak is high and logged in)
+                                if store.currentStreak >= 5 && userProfile.isLoggedIn {
                                     ForEach(0..<8) { i in
                                         Image(systemName: "flame.fill")
                                             .foregroundColor(.orange)
@@ -577,20 +578,35 @@ struct ProfileView: View {
                                     }
                                 }
                                 
-                                // Streak counter
-                                VStack(spacing: 1) {
-                                    Text("\(store.currentStreak)")
-                                        .font(.title3)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(store.currentStreak > 0 ? .primary : .secondary)
-                                    
-                                    Text("days")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                // Streak counter or login prompt
+                                if userProfile.isLoggedIn {
+                                    // Streak counter when logged in
+                                    VStack(spacing: 1) {
+                                        Text("\(store.currentStreak)")
+                                            .font(.title3)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(store.currentStreak > 0 ? .primary : .secondary)
+                                        
+                                        Text("days")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                } else {
+                                    // Login prompt when not logged in
+                                    VStack(spacing: 1) {
+                                        Text("Sign in")
+                                            .font(.caption)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("to track")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                                 
-                                // Fire emblem for active streak
-                                if store.currentStreak > 0 {
+                                // Fire emblem for active streak (when logged in)
+                                if store.currentStreak > 0 && userProfile.isLoggedIn {
                                     Image(systemName: "flame.fill")
                                         .foregroundColor(.orange)
                                         .font(.system(size: 16))
@@ -604,8 +620,16 @@ struct ProfileView: View {
                                         )
                                 }
                                 
-                                // Streak freeze indicator
-                                if userProfile.streakFreeze > 0 {
+                                // Lock icon when not logged in
+                                if !userProfile.isLoggedIn {
+                                    Image(systemName: "lock.fill")
+                                        .foregroundColor(.secondary)
+                                        .font(.system(size: 16))
+                                        .offset(y: -28)
+                                }
+                                
+                                // Streak freeze indicator (only when logged in)
+                                if userProfile.streakFreeze > 0 && userProfile.isLoggedIn {
                                     HStack(spacing: 1) {
                                         Image(systemName: "snowflake")
                                             .foregroundColor(.blue)
@@ -626,8 +650,9 @@ struct ProfileView: View {
                             HStack(spacing: 2) {
                                 Text("Streak")
                                     .font(.caption)
+                                    .foregroundColor(userProfile.isLoggedIn ? .primary : .secondary)
                                 
-                                if store.currentStreak >= 7 {
+                                if store.currentStreak >= 7 && userProfile.isLoggedIn {
                                     Image(systemName: "checkmark.seal.fill")
                                         .foregroundColor(.orange)
                                         .font(.system(size: 10))
