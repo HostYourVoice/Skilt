@@ -243,6 +243,14 @@ struct EnhancedCourseListRow: View {
     
     var body: some View {
         let isLocked = UserProfile.shared.eloRating < course.eloRequired
+        let userProfile = UserProfile.shared
+        let score = userProfile.userExerciseScores[course.moduleId]
+        let scoreText: String? = {
+            guard let score = score else {
+                return nil
+            }
+            return "Previous Score: \(score)"
+        }()
 
         HStack(spacing: 16) {
             // Left side - course icon based on difficulty
@@ -301,6 +309,13 @@ struct EnhancedCourseListRow: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
+                }
+                
+                // Score indicator
+                if let scoreText = scoreText {
+                    Text(scoreText)
+                        .font(.caption2)
+                        .foregroundColor(.green)
                 }
             }
             

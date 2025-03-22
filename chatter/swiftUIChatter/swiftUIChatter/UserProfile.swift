@@ -50,7 +50,7 @@ final class UserProfile {
     private(set) var streakFreeze: Int = 0 // Number of streak freezes available
     
     // Add dictionary to store exercise scores
-    private var userExerciseScores: [String: Int] = [:]
+    internal var userExerciseScores: [String: Int] = [:]
     
     // Update user profile with Google sign-in data
     func updateProfile(name: String?, email: String?, profilePictureURL: URL?, userId: String?, givenName: String? = nil, familyName: String? = nil, idToken: String? = nil) {
