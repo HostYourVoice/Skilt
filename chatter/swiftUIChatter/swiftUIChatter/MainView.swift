@@ -253,15 +253,25 @@ struct EnhancedCourseListRow: View {
         }()
 
         HStack(spacing: 16) {
-            // Left side - course icon based on difficulty
+            // Left side - course icon based on difficulty or completion
             ZStack {
-                Circle()
-                    .fill(isLocked ? Color.gray.opacity(0.5) : difficultyColor().opacity(0.9))
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: isLocked ? "lock.fill" : difficultyIcon())
-                    .foregroundColor(.white)
-                    .font(.system(size: 16))
+                if let score = score {
+                    Circle()
+                        .fill(Color.green.opacity(0.9))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: "checkmark")
+                        .foregroundColor(.white)
+                        .font(.system(size: 16))
+                } else {
+                    Circle()
+                        .fill(isLocked ? Color.gray.opacity(0.5) : difficultyColor().opacity(0.9))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: isLocked ? "lock.fill" : difficultyIcon())
+                        .foregroundColor(.white)
+                        .font(.system(size: 16))
+                }
             }
             
             // Middle - course info
