@@ -242,14 +242,16 @@ struct EnhancedCourseListRow: View {
     var onCourseSelected: (Course) -> Void
     
     var body: some View {
+        let isLocked = UserProfile.shared.eloRating < course.eloRequired
+
         HStack(spacing: 16) {
             // Left side - course icon based on difficulty
             ZStack {
                 Circle()
-                    .fill(difficultyColor().opacity(0.9))
+                    .fill(isLocked ? Color.gray.opacity(0.5) : difficultyColor().opacity(0.9))
                     .frame(width: 40, height: 40)
                 
-                Image(systemName: difficultyIcon())
+                Image(systemName: isLocked ? "lock.fill" : difficultyIcon())
                     .foregroundColor(.white)
                     .font(.system(size: 16))
             }
@@ -259,7 +261,7 @@ struct EnhancedCourseListRow: View {
                 Text(course.name)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(.primary)
+                    .foregroundColor(isLocked ? .gray : .primary)
                 
                 HStack {
                     // Course code
@@ -309,12 +311,14 @@ struct EnhancedCourseListRow: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 10)
-        .background(Color(.systemBackground))
+        .background(isLocked ? Color.gray.opacity(0.1) : Color(.systemBackground))
         .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         .contentShape(Rectangle())  // Make the entire area tappable
         .onTapGesture {
-            onCourseSelected(course)
+            if !isLocked {
+                onCourseSelected(course)
+            }
         }
     }
     
