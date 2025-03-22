@@ -108,10 +108,15 @@ final class ModuleQuestionsStore {
                     
                     // Submit to Supabase with scoring data
                     let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
+
+                    // Get the module ID from the courseData instead of using question.id (UUID)
+                    let exerciseId = self.courseData?.course.modules.first(where: { $0.title == question.title })?.id ?? question.id.uuidString
+
                     let success = await SubmissionStore.shared.upsertSubmission(
                         submissionText: submissionWithContext, 
                         userId: userId,
-                        scoringData: scoringData
+                        scoringData: scoringData,
+                        exerciseId: exerciseId
                     )
                     
                     if !success {

@@ -256,7 +256,7 @@ final class SubmissionStore: @unchecked Sendable {
 
 // Add a new function to insert a submission to Supabase
 extension SubmissionStore {
-    func upsertSubmission(submissionText: String, userId: String? = nil, scoringData: [String: Any]? = nil) async -> Bool {
+    func upsertSubmission(submissionText: String, userId: String? = nil, scoringData: [String: Any]? = nil, exerciseId: String? = nil) async -> Bool {
         // Get user profile information
         let userProfile = UserProfile.shared
         
@@ -279,6 +279,11 @@ extension SubmissionStore {
         // Add scoring data if provided
         if let scoringData = scoringData {
             submission["scoring"] = scoringData
+        }
+        
+        // Add exercise ID if provided
+        if let exerciseId = exerciseId {
+            submission["exercise_id"] = exerciseId
         }
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: submission) else {
