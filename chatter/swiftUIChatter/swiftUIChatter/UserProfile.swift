@@ -49,6 +49,9 @@ final class UserProfile {
     private(set) var lastActivityDate: Date?
     private(set) var streakFreeze: Int = 0 // Number of streak freezes available
     
+    // Add dictionary to store exercise scores
+    private var userExerciseScores: [String: Int] = [:]
+    
     // Update user profile with Google sign-in data
     func updateProfile(name: String?, email: String?, profilePictureURL: URL?, userId: String?, givenName: String? = nil, familyName: String? = nil, idToken: String? = nil) {
         self.displayName = name ?? "Anonymous User"
@@ -138,6 +141,9 @@ final class UserProfile {
         lastActivityDate = nil
         streakFreeze = 0
         
+        // Reset exercise scores
+        userExerciseScores = [:]
+        
         // Clear UserDefaults for all profile keys
         let userDefaults = UserDefaults.standard
         let keysToRemove = [
@@ -155,7 +161,8 @@ final class UserProfile {
             "userProfile_currentStreak",
             "userProfile_longestStreak",
             "userProfile_lastActivityDate",
-            "userProfile_streakFreeze"
+            "userProfile_streakFreeze",
+            "userProfile_exerciseScores"
         ]
         
         for key in keysToRemove {
@@ -193,6 +200,8 @@ final class UserProfile {
         givenName = nil
         familyName = nil
         idToken = nil
+        resetProfileData()
+
         
         // Clear ChatterID
         Task {
@@ -201,7 +210,7 @@ final class UserProfile {
             await ChatterID.shared.delete()
         }
         
-        // Keep stats for anonymous user
+        // Save changes to UserDefaults
         saveToUserDefaults()
     }
     
@@ -328,6 +337,47 @@ final class UserProfile {
         longestStreak = userDefaults.integer(forKey: "userProfile_longestStreak")
         lastActivityDate = userDefaults.object(forKey: "userProfile_lastActivityDate") as? Date
         streakFreeze = userDefaults.integer(forKey: "userProfile_streakFreeze")
+        
+        // Load exercise scores
+        loadExerciseScoresFromUserDefaults()
+    }
+    
+    // Add method to update exercise scores and recalculate ELO rating
+    func updateExerciseScore(exerciseId: String, score: Int) {
+        // Update the score for this exercise
+        userExerciseScores[exerciseId] = score
+        
+        // Calculate total ELO score (minimum at 100)
+        let totalScore = userExerciseScores.values.reduce(0, +) + 100
+        let newEloRating = max(totalScore, 100)
+        
+        // Update ELO rating
+        updateStats(eloRating: newEloRating)
+        
+        print("DEBUG: Updated ELO score to \(newEloRating) after exercise \(exerciseId) with score \(score)")
+        print("DEBUG: Current exercise scores: \(userExerciseScores)")
+        
+        // Save exercise scores to UserDefaults
+        saveExerciseScoresToUserDefaults()
+    }
+    
+    // Add methods to save and load exercise scores
+    private func saveExerciseScoresToUserDefaults() {
+        if let data = try? JSONEncoder().encode(userExerciseScores) {
+            UserDefaults.standard.set(data, forKey: "userProfile_exerciseScores")
+        }
+    }
+    
+    private func loadExerciseScoresFromUserDefaults() {
+        if let data = UserDefaults.standard.data(forKey: "userProfile_exerciseScores"),
+           let scores = try? JSONDecoder().decode([String: Int].self, from: data) {
+            userExerciseScores = scores
+        }
+    }
+    
+    // Computed property to get the count of completed exercises
+    var completedExercisesCount: Int {
+        return userExerciseScores.count
     }
 }
 

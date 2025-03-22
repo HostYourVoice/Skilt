@@ -252,6 +252,11 @@ final class SubmissionStore: @unchecked Sendable {
         self.submissions = mockSubmissions
         print("DEBUG: Added \(mockSubmissions.count) mock submissions to the store")
     }
+
+    func updateELOscore(exerciseId: String, score: Int) {
+        // Call the UserProfile method to update the exercise score
+        UserProfile.shared.updateExerciseScore(exerciseId: exerciseId, score: score)
+    }
 }
 
 // Add a new function to insert a submission to Supabase
@@ -316,6 +321,14 @@ extension SubmissionStore {
                 let success = (200...299).contains(httpStatus.statusCode)
                 if !success {
                     print("upsertSubmission: HTTP STATUS: \(httpStatus.statusCode)")
+                } else {
+                    // If submission was successful and we have exercise ID and scoring data
+                    if let exerciseId = exerciseId, 
+                       let scoringData = scoringData,
+                       let score = scoringData["score"] as? Int {
+                        // Update the ELO score
+                        updateELOscore(exerciseId: exerciseId, score: score)
+                    }
                 }
                 return success
             }

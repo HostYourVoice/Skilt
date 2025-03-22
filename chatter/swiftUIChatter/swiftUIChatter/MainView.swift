@@ -467,7 +467,7 @@ struct ProfileView: View {
                                     .stroke(Color.green.opacity(0.2), lineWidth: 10)
                                     .frame(width: 80, height: 80)
                                 
-                                let progress = Float(userProfile.completedModules) / Float(userProfile.totalModules)
+                                let progress = Float(userProfile.completedExercisesCount) / Float(userProfile.totalModules)
                                 Circle()
                                     .trim(from: 0, to: CGFloat(progress))
                                     .stroke(Color.green, lineWidth: 10)
@@ -475,7 +475,7 @@ struct ProfileView: View {
                                     .rotationEffect(.degrees(-90))
                                 
                                 VStack(spacing: 2) {
-                                    Text("\(userProfile.completedModules)/\(userProfile.totalModules)")
+                                    Text("\(userProfile.completedExercisesCount)/\(userProfile.totalModules)")
                                         .font(.title3)
                                         .fontWeight(.bold)
                                     
@@ -1028,7 +1028,7 @@ struct LearningTreeView: View {
                 }
             } header: {
                 HStack(spacing: 0) {
-                    Text("COURSE CATEGORIES")
+                    Text("MODULE CATEGORIES")
                         .textCase(.uppercase)
                         .font(.subheadline)
                         .fontWeight(.medium)
