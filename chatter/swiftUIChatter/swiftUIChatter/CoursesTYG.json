@@ -148,7 +148,7 @@
             "baseCompletionPoints": 25,
             "bonusMultiplier": 1.3
           },
-          "requiredEloRating": 150,
+          "requiredEloRating": 120,
           "commonMistakes": [
             {
               "id": "m2-1",
@@ -236,7 +236,7 @@
             "baseCompletionPoints": 15,
             "bonusMultiplier": 1.1
           },
-          "requiredEloRating": 175,
+          "requiredEloRating": 125,
           "commonMistakes": [
             {
               "id": "m3-1",
@@ -325,7 +325,7 @@
             "baseCompletionPoints": 30,
             "bonusMultiplier": 1.4
           },
-          "requiredEloRating": 250,
+          "requiredEloRating": 155,
           "commonMistakes": [
             {
               "id": "m4-1",
@@ -414,7 +414,7 @@
             "baseCompletionPoints": 20,
             "bonusMultiplier": 1.2
           },
-          "requiredEloRating": 175,
+          "requiredEloRating": 145,
           "commonMistakes": [
             {
               "id": "m5-1",

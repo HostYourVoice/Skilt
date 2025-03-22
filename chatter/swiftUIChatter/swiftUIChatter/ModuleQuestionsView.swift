@@ -360,7 +360,7 @@ struct ModuleQuestionsView: View {
         altRow: false,
         difficulty: 3,
         maxDifficulty: 5,
-        eloRequired: 1200,
+        eloRequired: 100,
         category: "Marketing",
         moduleId: "email-design-101"
     ))

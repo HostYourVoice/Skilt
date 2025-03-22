@@ -39,9 +39,9 @@ final class UserProfile {
     private(set) var idToken: String?
     
     // Additional stats
-    private(set) var eloRating: Int = 1200
+    private(set) var eloRating: Int = 100
     private(set) var completedModules: Int = 0
-    private(set) var totalModules: Int = 20
+    private(set) var totalModules: Int = 5
     
     // Streak tracking
     private(set) var currentStreak: Int = 0
@@ -266,11 +266,11 @@ final class UserProfile {
         idToken = userDefaults.string(forKey: "userProfile_idToken")
         
         eloRating = userDefaults.integer(forKey: "userProfile_eloRating")
-        if eloRating == 0 { eloRating = 1200 } // Default value if not set
+        if eloRating == 0 { eloRating = 100 } // Default value if not set
         
         completedModules = userDefaults.integer(forKey: "userProfile_completedModules")
         totalModules = userDefaults.integer(forKey: "userProfile_totalModules")
-        if totalModules == 0 { totalModules = 20 } // Default value if not set
+        if totalModules == 0 { totalModules = 5 } // Default value if not set
         
         // Load streak data
         currentStreak = userDefaults.integer(forKey: "userProfile_currentStreak")
