@@ -239,6 +239,7 @@ struct CategoryView: View {
 struct EnhancedCourseListRow: View {
     let course: Course
     let sortOption: LearningTreeView.SortOption
+    let isNewlyUnlocked: Bool
     var onCourseSelected: (Course) -> Void
     
     var body: some View {
@@ -342,7 +343,15 @@ struct EnhancedCourseListRow: View {
         )
         .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-        .contentShape(Rectangle())  // Make the entire area tappable
+        .overlay(alignment: .topTrailing) {
+            if isNewlyUnlocked {
+                Image(systemName: "exclamationmark.circle.fill")
+                    .foregroundColor(.orange)
+                    .font(.system(size: 20))
+                    .offset(x: 8, y: -8)
+            }
+        }
+        .contentShape(Rectangle())
         .onTapGesture {
             if !isLocked {
                 onCourseSelected(course)
@@ -916,6 +925,7 @@ struct LearningTreeView: View {
     @State private var sortOption: SortOption = .difficulty
     @State private var expandedCategories: Set<String> = []
     @State private var searchText = ""
+    @State private var newlyUnlockedCourses: Set<String> = []
     
     enum SortOption: String, CaseIterable, Identifiable {
         case difficulty = "Difficulty"
@@ -1074,8 +1084,10 @@ struct LearningTreeView: View {
                                     EnhancedCourseListRow(
                                         course: course,
                                         sortOption: sortOption,
+                                        isNewlyUnlocked: newlyUnlockedCourses.contains(course.moduleId),
                                         onCourseSelected: { course in
                                             selectedCourse = course
+                                            newlyUnlockedCourses.remove(course.moduleId)
                                         }
                                     )
                                 }
@@ -1177,6 +1189,7 @@ struct LearningTreeView: View {
         }
         .onAppear {
             print("DEBUG: courseTreeView appeared - store has \(store.submissions.count) submissions")
+            checkForNewlyUnlockedCourses()
         }
     }
     
@@ -1273,6 +1286,14 @@ struct LearningTreeView: View {
         let components = id.split(separator: "-")
         let firstLetters = components.map { String($0.prefix(1).uppercased()) }.joined()
         return "MOD\(firstLetters)\(Int.random(in: 100...999))"
+    }
+    
+    private func checkForNewlyUnlockedCourses() {
+        let userProfile = UserProfile.shared
+        newlyUnlockedCourses = Set(courses.filter { course in
+            course.eloRequired <= userProfile.eloRating &&
+            userProfile.userExerciseScores[course.moduleId] == nil
+        }.map { $0.moduleId })
     }
 }
 
