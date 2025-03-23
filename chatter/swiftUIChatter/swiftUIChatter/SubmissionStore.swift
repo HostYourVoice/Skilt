@@ -113,7 +113,8 @@ final class SubmissionStore: @unchecked Sendable {
                     message: submission.submission_str,
                     id: UUID(),
                     timestamp: formattedDate,
-                    altRow: idx % 2 == 0
+                    altRow: idx % 2 == 0,
+                    userEmail: submission.user_email
                 ))
                 idx += 1
             }
@@ -276,10 +277,20 @@ final class SubmissionStore: @unchecked Sendable {
         // Group submissions by date
         let calendar = Calendar.current
         var submissionDates = [Date]()
+        let currentUserEmail = UserProfile.shared.email
         
         for submission in submissions {
-            if let timestamp = submission.timestamp, let date = parseSubmissionDate(timestamp) {
-                submissionDates.append(date)
+            if let timestamp = submission.timestamp, 
+               let date = parseSubmissionDate(timestamp) {
+                
+                // If we don't have a user email, count all submissions
+                if currentUserEmail == nil {
+                    submissionDates.append(date)
+                }
+                // If we have current user email and it matches this submission
+                else if submission.userEmail == currentUserEmail {
+                    submissionDates.append(date)
+                }
             }
         }
         

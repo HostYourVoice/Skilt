@@ -35,6 +35,7 @@ struct Submission: Identifiable {
     var timestamp: String?
     var altRow = true
     @EmptyStringOptional var audio: String?
+    var userEmail: String?
 
     // so that we don't need to compare every property for equality
     static func ==(lhs: Submission, rhs: Submission) -> Bool {
