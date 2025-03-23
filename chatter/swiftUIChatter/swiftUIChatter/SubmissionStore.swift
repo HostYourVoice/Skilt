@@ -294,48 +294,53 @@ final class SubmissionStore: @unchecked Sendable {
             }
         }
         
+        // Handle case where no submissions match current user
+        guard !submissionDates.isEmpty else {
+            currentStreak = 0
+            return
+        }
+        
         // Sort dates from newest to oldest
         submissionDates.sort(by: >)
         
-        // Calculate current streak
-        var streak = 1
+        // Initialize streak counter to 0 instead of 1
+        var streak = 0
         let today = calendar.startOfDay(for: Date())
         
-        // Reset streak if no submissions today or yesterday
+        // Check if most recent submission is from today or yesterday
         if let mostRecentDate = submissionDates.first {
             let mostRecentDay = calendar.startOfDay(for: mostRecentDate)
             let dayDifference = calendar.dateComponents([.day], from: mostRecentDay, to: today).day ?? 0
             
-            if dayDifference > 1 {
-                // Streak broken - more than 1 day since last submission
-                currentStreak = 0
-                lastSubmissionDate = mostRecentDate
-                return
+            if dayDifference <= 1 {
+                // Valid streak - submission is today or yesterday
+                streak = 1
+                
+                // Calculate consecutive days
+                for i in 0..<submissionDates.count-1 {
+                    let currentDate = calendar.startOfDay(for: submissionDates[i])
+                    let nextDate = calendar.startOfDay(for: submissionDates[i+1])
+                    
+                    let daysBetween = calendar.dateComponents([.day], from: nextDate, to: currentDate).day ?? 0
+                    
+                    if daysBetween == 1 {
+                        // Consecutive day
+                        streak += 1
+                    } else if daysBetween > 1 {
+                        // Streak broken
+                        break
+                    }
+                }
             }
-        }
-        
-        // Calculate consecutive days
-        for i in 0..<submissionDates.count-1 {
-            let currentDate = calendar.startOfDay(for: submissionDates[i])
-            let nextDate = calendar.startOfDay(for: submissionDates[i+1])
+            // If dayDifference > 1, streak remains 0
             
-            let daysBetween = calendar.dateComponents([.day], from: nextDate, to: currentDate).day ?? 0
-            
-            if daysBetween == 1 {
-                // Consecutive day
-                streak += 1
-            } else if daysBetween > 1 {
-                // Streak broken
-                break
-            }
+            lastSubmissionDate = mostRecentDate
         }
         
         currentStreak = streak
         if currentStreak > largestStreak {
             largestStreak = currentStreak
         }
-        
-        lastSubmissionDate = submissionDates.first
     }
     
     // Helper function to parse a submission timestamp string into a Date
