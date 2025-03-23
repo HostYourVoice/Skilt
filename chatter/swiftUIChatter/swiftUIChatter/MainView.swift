@@ -669,7 +669,7 @@ struct ProfileView: View {
                     }
                     
                     // Longest streak badge
-                    if store.largestStreak > 0 {
+                    if store.largestStreak > 0 && userProfile.isLoggedIn {
                         HStack {
                             Spacer()
                             
