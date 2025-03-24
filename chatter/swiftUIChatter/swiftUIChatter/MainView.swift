@@ -306,10 +306,15 @@ struct EnhancedCourseListRow: View {
                         Image(systemName: "bolt")
                             .foregroundColor(.blue)
                             .font(.caption2)
-                            
-                        Text("Difficulty: \(course.difficulty)/\(course.maxDifficulty)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                        if let previousScore = UserProfile.shared.previousScoreForExercise(moduleId: course.moduleId, maxScore: course.difficulty * 20) {
+                              Text("Your Difficulty: \(String(format: "%.1f", Double(previousScore)))/\(course.maxDifficulty)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Difficulty: \(course.difficulty)/\(course.maxDifficulty)")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     // ELO indicator with text

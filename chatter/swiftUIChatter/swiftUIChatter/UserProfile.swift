@@ -52,14 +52,15 @@ final class UserProfile {
     // Add dictionary to store exercise scores
     internal var userExerciseScores: [String: Int] = [:]
     
-    // Define a structure for aggregate exercise data
-    struct ExerciseAggregateData: Codable {
+    // Structure to hold aggregate exercise score data
+    struct AggregateScoreData {
         var totalScores: Int
         var totalSubmissions: Int
+        var maxScore: Int?
     }
     
-    // Add dictionary to store aggregate exercise data
-    internal var userAggregateExerciseScores: [String: ExerciseAggregateData] = [:]
+    // Dictionary to store aggregate exercise score data
+    var userAggregateExerciseScores: [String: AggregateScoreData] = [:]
     
     // Update user profile with Google sign-in data
     func updateProfile(name: String?, email: String?, profilePictureURL: URL?, userId: String?, givenName: String? = nil, familyName: String? = nil, idToken: String? = nil) {
@@ -152,6 +153,8 @@ final class UserProfile {
         
         // Reset exercise scores
         userExerciseScores = [:]
+        
+        // Reset aggregate scores
         userAggregateExerciseScores = [:]
         
         // Clear UserDefaults for all profile keys
@@ -173,7 +176,7 @@ final class UserProfile {
             "userProfile_lastActivityDate",
             "userProfile_streakFreeze",
             "userProfile_exerciseScores",
-            "userProfile_aggregateExerciseScores"
+            "userProfile_aggregateScores"
         ]
         
         for key in keysToRemove {
@@ -358,6 +361,9 @@ final class UserProfile {
         // Update the score for this exercise
         userExerciseScores[exerciseId] = score
         
+        // Update aggregate scores for this exercise
+        updateAggregateScore(exerciseId: exerciseId, score: score)
+        
         // Calculate total ELO score (minimum at 100)
         let totalScore = userExerciseScores.values.reduce(0, +) + 100
         let newEloRating = max(totalScore, 100)
@@ -370,9 +376,26 @@ final class UserProfile {
         
         // Save exercise scores to UserDefaults
         saveExerciseScoresToUserDefaults()
+    }
+    
+    // Method to update aggregate score data
+    private func updateAggregateScore(exerciseId: String, score: Int) {
         
-        // Update aggregate data for this exercise
-        updateExerciseAggregate(exerciseId: exerciseId, score: score)
+        // filter for exerciseId in userExerciseScores
+
+        // Get current aggregate data or create new
+        var aggregateData = userAggregateExerciseScores[exerciseId] ?? AggregateScoreData(totalScores: 0, totalSubmissions: 0)
+        
+        // Add this submission to aggregate data
+        // Note: We're storing the total of normalized scores (0-1 scale)
+        aggregateData.totalScores += Int(score) // Store as integer (percentage)
+        aggregateData.totalSubmissions += 1
+        
+        // Update the dictionary
+        userAggregateExerciseScores[exerciseId] = aggregateData
+        
+        // Save to UserDefaults
+        saveAggregateScoresToUserDefaults()
     }
     
     // Add methods to save and load exercise scores
@@ -381,10 +404,8 @@ final class UserProfile {
             UserDefaults.standard.set(data, forKey: "userProfile_exerciseScores")
         }
         
-        // Save aggregate exercise scores
-        if let data = try? JSONEncoder().encode(userAggregateExerciseScores) {
-            UserDefaults.standard.set(data, forKey: "userProfile_aggregateExerciseScores")
-        }
+        // Also save aggregate scores
+        saveAggregateScoresToUserDefaults()
     }
     
     private func loadExerciseScoresFromUserDefaults() {
@@ -393,10 +414,44 @@ final class UserProfile {
             userExerciseScores = scores
         }
         
-        // Load aggregate exercise scores
-        if let data = UserDefaults.standard.data(forKey: "userProfile_aggregateExerciseScores"),
-           let aggregateScores = try? JSONDecoder().decode([String: ExerciseAggregateData].self, from: data) {
-            userAggregateExerciseScores = aggregateScores
+        // Also load aggregate scores
+        loadAggregateScoresFromUserDefaults()
+    }
+    
+    // Save and load methods for aggregate scores
+    private func saveAggregateScoresToUserDefaults() {
+        // Convert to a simple dictionary structure for encoding
+        var encodableData: [String: [String: Int]] = [:]
+        
+        for (moduleId, data) in userAggregateExerciseScores {
+            encodableData[moduleId] = [
+                "totalScores": data.totalScores,
+                "totalSubmissions": data.totalSubmissions
+            ]
+        }
+        
+        if let data = try? JSONEncoder().encode(encodableData) {
+            UserDefaults.standard.set(data, forKey: "userProfile_aggregateScores")
+        }
+    }
+    
+    private func loadAggregateScoresFromUserDefaults() {
+        if let data = UserDefaults.standard.data(forKey: "userProfile_aggregateScores"),
+           let encodedData = try? JSONDecoder().decode([String: [String: Int]].self, from: data) {
+            
+            var loadedData: [String: AggregateScoreData] = [:]
+            
+            for (moduleId, values) in encodedData {
+                if let totalScores = values["totalScores"],
+                   let totalSubmissions = values["totalSubmissions"] {
+                    loadedData[moduleId] = AggregateScoreData(
+                        totalScores: totalScores,
+                        totalSubmissions: totalSubmissions
+                    )
+                }
+            }
+            
+            userAggregateExerciseScores = loadedData
         }
     }
     
@@ -405,21 +460,36 @@ final class UserProfile {
         return userExerciseScores.count
     }
     
-    // Update aggregate exercise data
-    func updateExerciseAggregate(exerciseId: String, score: Int) {
-        // If this exercise doesn't have aggregate data yet, initialize it
-        if userAggregateExerciseScores[exerciseId] == nil {
-            userAggregateExerciseScores[exerciseId] = ExerciseAggregateData(totalScores: 0, totalSubmissions: 0)
+    // Helper to check if a module is completed
+    func isModuleCompleted(moduleId: String) -> Bool {
+        return userExerciseScores[moduleId] != nil
+    }
+    
+    // Calculate previous score for an exercise based on aggregate data
+    func previousScoreForExercise(moduleId: String, maxScore: Int) -> Double? {
+        // Check if we have aggregate data for this exercise
+        guard let aggregateData = userAggregateExerciseScores[moduleId],
+              aggregateData.totalSubmissions > 0 else {
+            print("DEBUG: No previous score for moduleId: \(moduleId)")
+            return nil // Return nil if no previous submissions
         }
         
-        // Update the aggregate data
-        userAggregateExerciseScores[exerciseId]?.totalScores += score
-        userAggregateExerciseScores[exerciseId]?.totalSubmissions += 1
+        print("DEBUG: previousScoreForExercise - moduleId: \(moduleId)")
+        print("DEBUG: aggregateData - totalScores: \(aggregateData.totalScores), totalSubmissions: \(aggregateData.totalSubmissions)")
         
-        // Save to UserDefaults
-        saveExerciseScoresToUserDefaults()
+        // Calculate the score using the formula:
+        // (1 - aggregateScore.totalScore / aggregateScore.totalSubmissions) * 5
+        let averageScore = Double(aggregateData.totalScores) / Double(aggregateData.totalSubmissions)
+        print("DEBUG: averageScore calculated: \(averageScore)")
         
-        print("DEBUG: Updated aggregate data for exercise \(exerciseId): total score \(userAggregateExerciseScores[exerciseId]?.totalScores ?? 0), submissions \(userAggregateExerciseScores[exerciseId]?.totalSubmissions ?? 0)")
+        let calculatedScore = (1.0 - averageScore/Double(maxScore)) * 5.0
+        print("DEBUG: calculatedScore before min check: \(calculatedScore)")
+        
+        // Round to 1 decimal place and ensure the minimum score is 1.0
+        let finalScore = max(round(calculatedScore * 10) / 10, 1.0)
+        print("DEBUG: finalScore returned: \(finalScore)")
+        
+        return finalScore
     }
 }
 

@@ -425,8 +425,6 @@ extension SubmissionStore {
                         // Update the ELO score
                         updateELOscore(exerciseId: exerciseId, score: score)
                         
-                        // Also update the aggregate exercise data
-                        UserProfile.shared.updateExerciseAggregate(exerciseId: exerciseId, score: score)
                     }
                 }
                 return success

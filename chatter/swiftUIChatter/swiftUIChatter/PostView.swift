@@ -87,7 +87,6 @@ struct PostView: View {
                                                                     message: message, 
                                                                     audio: audioPlayer.audio?.base64EncodedString()))
                 if result != nil {
-                    await SubmissionStore.shared.getSubmissions()
                     isPresented.toggle()
                 } else {
                     alertType = .sendError
