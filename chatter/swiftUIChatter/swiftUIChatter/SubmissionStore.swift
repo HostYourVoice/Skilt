@@ -263,8 +263,83 @@ final class SubmissionStore: @unchecked Sendable {
     }
 
     func updateELOscore(exerciseId: String, score: Int) {
-        // Call the UserProfile method to update the exercise score
+        // Update the user's ELO score
         UserProfile.shared.updateExerciseScore(exerciseId: exerciseId, score: score)
+        
+        // Get the current difficulty from Supabase
+        Task {
+            // First, get the current difficulty
+            guard let apiUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/exercises?select=difficulty&id=eq.\(exerciseId)") else {
+                print("updateELOscore: Bad URL")
+                return
+            }
+            
+            var request = URLRequest(url: apiUrl)
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            request.setValue("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "apikey")
+            request.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "authorization")
+            request.httpMethod = "GET"
+            
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                
+                if let httpStatus = response as? HTTPURLResponse {
+                    if httpStatus.statusCode != 200 {
+                        print("updateELOscore: Failed to get current difficulty. HTTP STATUS: \(httpStatus.statusCode)")
+                        return
+                    }
+                }
+                
+                // Parse the current difficulty
+                struct ExerciseDifficulty: Codable {
+                    let difficulty: Int
+                }
+                
+                guard let currentDifficulty = try? JSONDecoder().decode([ExerciseDifficulty].self, from: data).first?.difficulty else {
+                    print("updateELOscore: Failed to decode current difficulty")
+                    return
+                }
+                
+                // Calculate new difficulty based on score
+                // If score is high (>= 80), increase difficulty slightly
+                // If score is low (<= 60), decrease difficulty slightly
+                let newDifficulty: Int
+//                newDifficulty = 1
+                if score >= 80 {
+                    newDifficulty = min(currentDifficulty + 1, 5)
+                } else if score <= 60 {
+                    newDifficulty = max(currentDifficulty - 1, 1)
+                } else {
+                    newDifficulty = currentDifficulty
+                }
+                
+                // Only update if difficulty changed
+                if newDifficulty != currentDifficulty {
+                    // Update the difficulty in Supabase
+                    let updateUrl = URL(string: "https://oozwwgcihpunaaatfjwn.supabase.co/rest/v1/exercises?id=eq.\(exerciseId)")!
+                    var updateRequest = URLRequest(url: updateUrl)
+                    updateRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    updateRequest.setValue("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "apikey")
+                    updateRequest.setValue("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vend3Z2NpaHB1bmFhYXRmanduIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MjE3NjE5MiwiZXhwIjoyMDU3NzUyMTkyfQ.KjcU_btA7LBYLgxGA_5iRGNzmBcR2Dx4eYkw3wp-nfc", forHTTPHeaderField: "authorization")
+                    updateRequest.httpMethod = "PATCH"
+                    
+                    let updateData = ["difficulty": newDifficulty]
+                    updateRequest.httpBody = try? JSONSerialization.data(withJSONObject: updateData)
+                    
+                    let (_, updateResponse) = try await URLSession.shared.data(for: updateRequest)
+                    
+                    if let httpStatus = updateResponse as? HTTPURLResponse {
+                        if httpStatus.statusCode != 200 {
+                            print("updateELOscore: Failed to update difficulty. HTTP STATUS: \(httpStatus.statusCode)")
+                        } else {
+                            print("updateELOscore: Successfully updated difficulty from \(currentDifficulty) to \(newDifficulty)")
+                        }
+                    }
+                }
+            } catch {
+                print("updateELOscore: Error updating difficulty: \(error.localizedDescription)")
+            }
+        }
     }
 
     // Add function to calculate and update submission streak
@@ -424,6 +499,7 @@ extension SubmissionStore {
                        let score = scoringData["score"] as? Int {
                         // Update the ELO score
                         updateELOscore(exerciseId: exerciseId, score: score)
+                        
                     }
                 }
                 return success

@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 
 @Observable
-final class ModuleQuestionsStore {
+final class ModuleQuestionsStore {    
     private(set) var questions: [ModuleQuestion] = []
     private(set) var isLoading: Bool = false
     private(set) var course: Course
@@ -68,9 +68,6 @@ final class ModuleQuestionsStore {
         submissions[questionId] = text
         submissionStatuses[questionId] = .submitted
         
-        // Don't save to Supabase immediately - we'll do it after evaluation
-        // with the scoring data included
-        
         // Simulate evaluation process
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             self.submissionStatuses[questionId] = .evaluating
@@ -78,7 +75,8 @@ final class ModuleQuestionsStore {
             // Simulate evaluation time
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 // Find the question
-                guard let question = self.questions.first(where: { $0.id == questionId }) else { return }
+                guard let questionIndex = self.questions.firstIndex(where: { $0.id == questionId }) else { return }
+                let question = self.questions[questionIndex]
                 
                 // Generate a random score between 60-100% of max points
                 let maxPoints = question.points
@@ -90,7 +88,7 @@ final class ModuleQuestionsStore {
                 // Update status
                 self.submissionStatuses[questionId] = .completed(score: score, feedback: feedback)
                 
-                // Save to Supabase with scoring data (this is the only submission we'll make)
+                // Save to Supabase with scoring data
                 Task {
                     // Create the scoring JSON object
                     let scoringData: [String: Any] = [
@@ -109,8 +107,8 @@ final class ModuleQuestionsStore {
                     // Submit to Supabase with scoring data
                     let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
 
-                    // Get the module ID from the courseData instead of using question.id (UUID)
-                    let exerciseId = self.courseData?.course.modules.first(where: { $0.title == question.title })?.id ?? question.id.uuidString
+                    // Get the module ID from CourseStore
+                    let exerciseId = CourseStore.shared.getModule(title: question.title)?.id ?? question.id.uuidString
 
                     let success = await SubmissionStore.shared.upsertSubmission(
                         submissionText: submissionWithContext, 
@@ -119,7 +117,56 @@ final class ModuleQuestionsStore {
                         exerciseId: exerciseId
                     )
                     
-                    if !success {
+                    // Convert score and points to Double for percentage calculation
+                    let newTotalSubmissions = question.totalSubmissions + 1
+                    
+                    // Calculate the current total score percentage
+                    let currentTotalScorePercentage = question.averageScorePercentage * Double(question.totalSubmissions)
+                    
+                    // Calculate the new score percentage
+                    let newScorePercentage = Double(score) / Double(question.points)
+                    
+                    // Calculate the new average score percentage
+                    let newAverageScorePercentage = (currentTotalScorePercentage + newScorePercentage) / Double(newTotalSubmissions)
+
+                    let newDifficulty: Int
+                    if newAverageScorePercentage >= 0.8 {
+                        newDifficulty = 1
+                    } else if newAverageScorePercentage >= 0.6 {
+                        newDifficulty = 2
+                    } else if newAverageScorePercentage >= 0.4 {
+                        newDifficulty = 3
+                    } else if newAverageScorePercentage >= 0.2 {
+                        newDifficulty = 4
+                    } else {
+                        newDifficulty = 5
+                    }
+                    
+                    if success {
+                        // Update difficulty in Supabase and CourseStore
+                        await CourseStore.shared.updateModuleDifficulty(moduleId: exerciseId, newDifficulty: newDifficulty)
+                        
+                        // Update the question locally with new difficulty
+                        let updatedQuestion = ModuleQuestion(
+                            title: question.title,
+                            scenario: question.scenario,
+                            question: question.question,
+                            options: question.options,
+                            correctAnswer: question.correctAnswer,
+                            explanation: question.explanation,
+                            difficulty: newDifficulty,
+                            averageScorePercentage: newAverageScorePercentage,
+                            totalSubmissions: newTotalSubmissions,
+                            points: question.points,
+                            altRow: question.altRow,
+                            rubricPoints: question.rubricPoints,
+                            checklistItems: question.checklistItems,
+                            aiFeedbackPoints: question.aiFeedbackPoints
+                        )
+                        
+                        // Update the question in the array
+                        self.questions[questionIndex] = updatedQuestion
+                    } else {
                         print("Failed to save submission with scoring data to Supabase")
                     }
                 }
@@ -141,19 +188,28 @@ final class ModuleQuestionsStore {
         }
     }
     
-    private func generateQuestionsFromJSON() -> [ModuleQuestion] {
+    private func generateQuestionsFromJSON() async -> [ModuleQuestion] {
         var questions: [ModuleQuestion] = []
         
         // Find the module matching our course's moduleId
-        guard let courseData = courseData,
+        guard let courseData = CourseStore.shared.courseData,
               let module = courseData.course.modules.first(where: { $0.id == course.moduleId }),
               let scenario = module.scenario else {
             // Fallback to mock questions if no scenario found
             return generateMockQuestions()
         }
         
-        // Instead of creating multiple questions with different titles,
-        // create just one question using the module's title
+        // Get the current difficulty from Supabase
+        if let currentDifficulty = await CourseStore.shared.getModuleDifficulty(moduleId: module.id) {
+            // Update the module's difficulty in the courseData
+            if let moduleIndex = courseData.course.modules.firstIndex(where: { $0.id == module.id }) {
+                var updatedModule = courseData.course.modules[moduleIndex]
+                updatedModule.difficulty.score = currentDifficulty
+                CourseStore.shared.updateModuleDifficulty(moduleId: module.id, newDifficulty: currentDifficulty)
+            }
+        }
+        
+        // Use the current difficulty from the module
         let difficulty = module.difficulty.score
         let points = difficulty * 20
         
@@ -195,7 +251,7 @@ final class ModuleQuestionsStore {
         // Add the single question to the list
         questions.append(
             ModuleQuestion(
-                title: module.title, // Use the module title directly
+                title: module.title,
                 scenario: scenario.context,
                 question: questionText,
                 options: [
@@ -207,6 +263,8 @@ final class ModuleQuestionsStore {
                 correctAnswer: Int.random(in: 0...3),
                 explanation: "This scenario tests your understanding of \(course.category) principles and best practices in email communication.",
                 difficulty: difficulty,
+                averageScorePercentage: 0.0,
+                totalSubmissions: 0,
                 points: points,
                 altRow: false,
                 rubricPoints: rubricPoints,
@@ -282,6 +340,8 @@ final class ModuleQuestionsStore {
                     correctAnswer: Int.random(in: 0...3),
                     explanation: "This scenario tests your understanding of \(course.category) principles and best practices in email communication.",
                     difficulty: difficulty,
+                    averageScorePercentage: Double.random(in: 0...1),
+                    totalSubmissions: Int.random(in: 0...50), // Random number of submissions for mock data
                     points: points,
                     altRow: i % 2 == 1,
                     rubricPoints: rubricPoints,
