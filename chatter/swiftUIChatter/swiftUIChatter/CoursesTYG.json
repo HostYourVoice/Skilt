@@ -561,12 +561,1074 @@
           "Q: Will I receive a grade penalty?\nA: This depends on your professor's policies. Be prepared to accept any applicable penalties while demonstrating your commitment to completing the work.",
           "Q: How can I prevent this in the future?\nA: Submit assignments well before deadlines, use reliable devices/networks, and keep backup copies of your work."
         ]
+      },
+      {
+        "id": "scholarship-followup",
+        "title": "Scholarship Application Follow-up",
+        "order": 6,
+        "category": "academic",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for your follow-up email",
+            "example": "Scholarship Application Status Inquiry - Fall 2025"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content requesting status update and expressing continued interest",
+            "example": "Dear Scholarship Committee,\n\nI hope you are well. I submitted my application for the Fall 2025 Academic Excellence Scholarship two weeks ago and would like to kindly inquire about its status. I remain very interested in this opportunity and appreciate any update you can provide.\n\nThank you for your time and consideration.\n\nSincerely,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 2,
+          "scale": 5,
+          "factors": [
+            "Formal tone maintenance",
+            "Precision of inquiry",
+            "Timeliness of follow-up"
+          ],
+          "baseCompletionPoints": 15,
+          "bonusMultiplier": 1.1
+        },
+        "requiredEloRating": 130,
+        "commonMistakes": [
+          {
+            "id": "m6-1",
+            "description": "Being too pushy or demanding about the decision"
+          },
+          {
+            "id": "m6-2",
+            "description": "Forgetting to restate key application details"
+          },
+          {
+            "id": "m6-3",
+            "description": "Neglecting to show appreciation for the committee’s time"
+          },
+          {
+            "id": "m6-4",
+            "description": "Not including any follow-up action or contact info"
+          }
+        ],
+        "scenario": {
+          "context": "You applied for a scholarship 2 weeks ago and haven't heard back. You want to politely follow up without appearing impatient.",
+          "requirements": [
+            "Reference the scholarship and date of submission",
+            "Politely request any status update",
+            "Express continued enthusiasm"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of courteous language and polite tone",
+            "Evaluation of clarity in referencing the original application",
+            "Assessment of how well you express continued interest"
+          ],
+          "checklistItems": [
+            {
+              "id": "c6-1",
+              "description": "Mentioned specific scholarship name and submission date"
+            },
+            {
+              "id": "c6-2",
+              "description": "Maintained respectful and professional tone"
+            },
+            {
+              "id": "c6-3",
+              "description": "Clearly requested a status update"
+            },
+            {
+              "id": "c6-4",
+              "description": "Expressed gratitude for their time"
+            },
+            {
+              "id": "c6-5",
+              "description": "Included your contact information or reference number"
+            }
+          ]
+        },
+        "contentCards": [
+          "Send follow-up emails at least 1-2 weeks after submission",
+          "Keep your email short and polite",
+          "Include relevant application details",
+          "Maintain a respectful tone, avoiding pressure",
+          "Consider any stated response timelines",
+          "Thank the committee for their time and consideration",
+          "Re-emphasize your interest in the scholarship",
+          "Provide any additional information if requested",
+          "Double-check for grammar and clarity",
+          "Use a formal salutation and closing",
+          "Remember, scholarship committees often receive numerous applications, so patience and professionalism are key."
+        ],
+        "resourceCards": [
+          "Q: Is it too soon to follow up after 2 weeks?\nA: Generally, 2 weeks is a reasonable timeframe. However, always check if the scholarship guidelines specify a different timeline for updates.",
+          "Q: What if I still don't hear back?\nA: Wait another week before sending a second follow-up. If there’s still no response, you may contact the institution’s admissions or financial aid office.",
+          "Q: Should I attach my application documents again?\nA: Not unless specifically requested. A reference to your previous submission should suffice."
+        ]
+      },
+      {
+        "id": "study-group-invitation",
+        "title": "Study Group Invitation",
+        "order": 7,
+        "category": "academic",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for the study group invitation",
+            "example": "Invitation: ECON 201 Study Group Meeting"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content inviting classmates to a study group session",
+            "example": "Hello ECON 201 classmates,\n\nI hope everyone's semester is going well. I'm organizing a study group to review chapters 3-5 for our upcoming midterm. We plan to meet on Wednesday at 4 PM in the library study room. If you'd like to join or have suggestions, please let me know.\n\nBest,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 1,
+          "scale": 5,
+          "factors": [
+            "Informal yet organized tone",
+            "Coordinating schedules",
+            "Clear call-to-action"
+          ],
+          "baseCompletionPoints": 10,
+          "bonusMultiplier": 1.0
+        },
+        "requiredEloRating": 110,
+        "commonMistakes": [
+          {
+            "id": "m7-1",
+            "description": "Forgetting to specify date, time, or location"
+          },
+          {
+            "id": "m7-2",
+            "description": "Using a confusing or overly casual tone"
+          },
+          {
+            "id": "m7-3",
+            "description": "Not clarifying the topics or purpose of the study group"
+          },
+          {
+            "id": "m7-4",
+            "description": "Failing to provide a way for classmates to RSVP or ask questions"
+          }
+        ],
+        "scenario": {
+          "context": "You want to form a study group with classmates to prepare for an upcoming exam in ECON 201. You're sending an initial invitation email.",
+          "requirements": [
+            "Mention the course and exam topics",
+            "Provide date, time, and location",
+            "Offer a way to confirm attendance or suggest changes"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of clarity in date/time/location details",
+            "Evaluation of inclusivity and invitation tone",
+            "Assessment of whether a clear call-to-action (RSVP) is provided"
+          ],
+          "checklistItems": [
+            {
+              "id": "c7-1",
+              "description": "Specified course name and chapters/topics"
+            },
+            {
+              "id": "c7-2",
+              "description": "Included exact meeting date, time, and location"
+            },
+            {
+              "id": "c7-3",
+              "description": "Provided a method for classmates to respond"
+            },
+            {
+              "id": "c7-4",
+              "description": "Used an inviting yet organized tone"
+            },
+            {
+              "id": "c7-5",
+              "description": "Encouraged collaboration or topic suggestions"
+            }
+          ]
+        },
+        "contentCards": [
+          "Mention relevant course material",
+          "Keep the invitation concise",
+          "Be flexible with scheduling",
+          "Encourage participation by inviting suggestions",
+          "Use a friendly tone but remain organized",
+          "Follow up with a reminder if needed",
+          "Consider offering snacks or refreshments if appropriate",
+          "Respect everyone's time by starting and ending on schedule",
+          "If many are interested, consider rotating meeting locations",
+          "Building a collaborative environment can benefit everyone’s understanding and performance"
+        ],
+        "resourceCards": [
+          "Q: Should I include the professor in the invitation?\nA: Generally, study groups are student-led, but you can CC the professor if you feel it might be beneficial or if they've encouraged group study.",
+          "Q: How often should a study group meet?\nA: This depends on everyone’s schedules and exam timelines. Meeting once a week or bi-weekly is common before major exams.",
+          "Q: What if only a few people respond?\nA: A smaller study group can still be effective. Focus on consistent scheduling and shared resources to keep everyone engaged."
+        ]
+      },
+      {
+        "id": "internship-application",
+        "title": "Internship Application Email",
+        "order": 8,
+        "category": "professional",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for internship application",
+            "example": "Summer UX Internship Application - [Your Name]"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Complete email content including your background, motivation, and attached resume",
+            "example": "Dear Hiring Team,\n\nI hope you are doing well. My name is [Your Name], a junior majoring in Computer Science with a strong interest in UX design. I am reaching out to apply for the Summer UX Internship at XYZ Company. I have attached my resume and a brief portfolio of design projects.\n\nThank you for your consideration, and I look forward to the possibility of working with your team.\n\nSincerely,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 3,
+          "scale": 5,
+          "factors": [
+            "Professional branding",
+            "Highlighting relevant skills",
+            "Concise yet impactful"
+          ],
+          "baseCompletionPoints": 25,
+          "bonusMultiplier": 1.3
+        },
+        "requiredEloRating": 160,
+        "commonMistakes": [
+          {
+            "id": "m8-1",
+            "description": "Failing to properly address the hiring manager or team"
+          },
+          {
+            "id": "m8-2",
+            "description": "Not specifying the position and session (e.g., summer internship)"
+          },
+          {
+            "id": "m8-3",
+            "description": "Using an unprofessional or personal tone"
+          },
+          {
+            "id": "m8-4",
+            "description": "Forgetting to attach a resume or portfolio"
+          }
+        ],
+        "scenario": {
+          "context": "You are a junior looking to apply for a summer internship in UX design. You need to showcase your relevant skills and attach your resume or portfolio.",
+          "requirements": [
+            "State your academic background briefly",
+            "Mention relevant UX/design skills",
+            "Attach your resume/portfolio"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of how well you present relevant skills",
+            "Evaluation of professional tone and clarity",
+            "Assessment of readiness of attachments and contact details"
+          ],
+          "checklistItems": [
+            {
+              "id": "c8-1",
+              "description": "Properly addressed the hiring team or manager"
+            },
+            {
+              "id": "c8-2",
+              "description": "Mentioned exact internship role and timing"
+            },
+            {
+              "id": "c8-3",
+              "description": "Highlighted skills or coursework related to UX design"
+            },
+            {
+              "id": "c8-4",
+              "description": "Attached resume and/or portfolio link"
+            },
+            {
+              "id": "c8-5",
+              "description": "Included professional closing and signature with contact information"
+            }
+          ]
+        },
+        "contentCards": [
+          "Use a clear subject line specifying the internship title",
+          "Research the company to tailor your email",
+          "Highlight relevant coursework and projects",
+          "Keep the body concise but specific",
+          "Show genuine enthusiasm for the role",
+          "Double-check attachments for accuracy",
+          "Use a formal greeting (e.g., 'Dear Hiring Team')",
+          "End with a polite closing (e.g., 'Sincerely')",
+          "Proofread thoroughly for grammar and spelling",
+          "Follow up after 1-2 weeks if no response",
+          "A well-crafted internship email can set the stage for a successful professional relationship."
+        ],
+        "resourceCards": [
+          "Q: How should I address the hiring manager if I don't know their name?\nA: Use a general but polite greeting such as 'Dear Hiring Team' or 'Dear [Department] Hiring Manager.'",
+          "Q: How long should the email be?\nA: Aim for 2-3 short paragraphs, ensuring all key points are covered while maintaining clarity and brevity.",
+          "Q: Should I mention specific projects?\nA: Yes, briefly highlight one or two relevant projects that demonstrate your skills and passion. Link to your portfolio for more details."
+        ]
+      },
+      {
+        "id": "event-networking",
+        "title": "Post-Event Networking Follow-Up",
+        "order": 9,
+        "category": "professional",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for a follow-up after a networking event",
+            "example": "Great Connecting at the Tech Panel Last Night"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content thanking a contact for the conversation and expressing interest in further dialogue",
+            "example": "Hello [Name],\n\nIt was great meeting you at the Tech Panel last night. I appreciated your insights on blockchain development. I'd love to continue our conversation, especially regarding your work with decentralized finance platforms.\n\nHope to stay in touch,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 2,
+          "scale": 5,
+          "factors": [
+            "Professional yet personable tone",
+            "Recalling specific conversation points",
+            "Prompt follow-up"
+          ],
+          "baseCompletionPoints": 15,
+          "bonusMultiplier": 1.1
+        },
+        "requiredEloRating": 180,
+        "commonMistakes": [
+          {
+            "id": "m9-1",
+            "description": "Sending a generic follow-up without referencing the specific event or discussion"
+          },
+          {
+            "id": "m9-2",
+            "description": "Waiting too long to follow up (over a week)"
+          },
+          {
+            "id": "m9-3",
+            "description": "Being overly formal or too casual"
+          },
+          {
+            "id": "m9-4",
+            "description": "Failing to include a clear next step or request"
+          }
+        ],
+        "scenario": {
+          "context": "You met a professional contact at a tech panel who shared valuable insights. You want to maintain the connection and possibly discuss collaboration or advice.",
+          "requirements": [
+            "Thank them for their time",
+            "Reference something specific from your conversation",
+            "Propose or invite next steps (call, meeting, info exchange)"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of timeliness and personalization",
+            "Evaluation of clarity in next-step invitation",
+            "Assessment of friendly yet professional tone"
+          ],
+          "checklistItems": [
+            {
+              "id": "c9-1",
+              "description": "Referenced the event and conversation topic"
+            },
+            {
+              "id": "c9-2",
+              "description": "Thanked them for their insights or time"
+            },
+            {
+              "id": "c9-3",
+              "description": "Suggested a follow-up action or meeting"
+            },
+            {
+              "id": "c9-4",
+              "description": "Kept the tone professional but friendly"
+            },
+            {
+              "id": "c9-5",
+              "description": "Included your contact information"
+            }
+          ]
+        },
+        "contentCards": [
+          "Send your follow-up within 24-48 hours",
+          "Be genuine and specific about what you learned",
+          "Suggest a brief call or meeting if appropriate",
+          "Keep the email concise and polite",
+          "Offer value where possible",
+          "Mention any relevant shared interests",
+          "Avoid generic phrases like 'nice to meet you' without details",
+          "Close with a polite invitation to continue the conversation",
+          "Proofread before sending",
+          "Personalization is key in networking; show that you remember them as an individual."
+        ],
+        "resourceCards": [
+          "Q: Should I mention potential collaboration right away?\nA: If it feels appropriate, yes. But keep it light and exploratory rather than pushing them into a commitment.",
+          "Q: What if I only have their LinkedIn, not their email?\nA: Send a personalized message on LinkedIn referencing your conversation. The same principles apply to any networking follow-up.",
+          "Q: How long should I wait before sending a reminder if there's no response?\nA: Give it about a week before politely following up, referencing your initial message."
+        ]
+      },
+      {
+        "id": "grade-dispute",
+        "title": "Grade Dispute Request",
+        "order": 10,
+        "category": "administrative",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for requesting a grade review",
+            "example": "Grade Review Request - History 304 Midterm"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Complete email content politely disputing or requesting a review of a grade",
+            "example": "Dear Professor Smith,\n\nI hope you're doing well. I received my midterm grade for History 304 and noticed an unexpected discrepancy in the essay portion. I have attached my exam copy and would appreciate an opportunity to discuss or clarify any concerns.\n\nThank you for your time and understanding.\n\nSincerely,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 3,
+          "scale": 5,
+          "factors": [
+            "Tactful approach",
+            "Evidence-based argument",
+            "Policy awareness"
+          ],
+          "baseCompletionPoints": 20,
+          "bonusMultiplier": 1.2
+        },
+        "requiredEloRating": 150,
+        "commonMistakes": [
+          {
+            "id": "m10-1",
+            "description": "Using a confrontational or accusatory tone"
+          },
+          {
+            "id": "m10-2",
+            "description": "Not referring to specific parts of the exam or rubric"
+          },
+          {
+            "id": "m10-3",
+            "description": "Failing to attach evidence or your exam copy"
+          },
+          {
+            "id": "m10-4",
+            "description": "Ignoring official grade dispute policies or deadlines"
+          }
+        ],
+        "scenario": {
+          "context": "You believe there may have been a grading error on your History 304 midterm essay. You want to clarify or dispute the score in a polite, evidence-based manner.",
+          "requirements": [
+            "Mention the specific assessment",
+            "Attach relevant documents",
+            "Request a respectful review of the grade"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of politeness and respect",
+            "Evaluation of how clearly you present evidence",
+            "Assessment of awareness of policies and willingness to follow them"
+          ],
+          "checklistItems": [
+            {
+              "id": "c10-1",
+              "description": "Specifically identified the assignment/exam in question"
+            },
+            {
+              "id": "c10-2",
+              "description": "Attached or referenced relevant exam sections"
+            },
+            {
+              "id": "c10-3",
+              "description": "Maintained a polite, non-confrontational tone"
+            },
+            {
+              "id": "c10-4",
+              "description": "Acknowledged possible misunderstandings or need for clarification"
+            },
+            {
+              "id": "c10-5",
+              "description": "Followed any known dispute policy or timeline"
+            }
+          ]
+        },
+        "contentCards": [
+          "Review the grading policy before contacting your professor",
+          "Gather specific evidence or examples of discrepancies",
+          "Keep your tone respectful and open-minded",
+          "Propose a meeting or office hours visit if needed",
+          "Attach or reference the graded work",
+          "Acknowledge potential misunderstandings politely",
+          "Thank the professor for their time in reviewing",
+          "Be prepared for either outcome",
+          "Follow up if you don’t hear back within a reasonable timeframe",
+          "A fact-based, polite approach often yields better outcomes in grade disputes."
+        ],
+        "resourceCards": [
+          "Q: What if the professor refuses to review my grade?\nA: Check your institution’s policies. There may be a formal appeals process or an academic advisor you can consult.",
+          "Q: Should I CC the department head or dean?\nA: Generally, start by emailing the professor directly. Escalate only if policy suggests doing so, or if no resolution is reached.",
+          "Q: How soon after receiving my grade should I send a dispute request?\nA: As soon as possible. Most institutions have a specific window (e.g., within 1-2 weeks of receiving the grade)."
+        ]
+      },
+      {
+        "id": "course-overload-request",
+        "title": "Course Overload Permission",
+        "order": 11,
+        "category": "administrative",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for requesting a course overload",
+            "example": "Request for Course Overload Approval - Spring 2026"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content explaining reasons for enrolling in extra credits",
+            "example": "Dear Academic Affairs Committee,\n\nI hope this message finds you well. I am currently a junior majoring in Business Administration and would like to enroll in 21 credits this Spring 2026 semester. My goal is to complete an additional research elective that aligns with my career aspirations in data analytics.\n\nI have maintained a 3.8 GPA and have the support of my academic advisor, Dr. Blake, whose letter is attached. I appreciate your consideration of this request.\n\nThank you,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 4,
+          "scale": 5,
+          "factors": [
+            "Academic policy navigation",
+            "Demonstrating capability",
+            "Gathering advisor support"
+          ],
+          "baseCompletionPoints": 30,
+          "bonusMultiplier": 1.4
+        },
+        "requiredEloRating": 165,
+        "commonMistakes": [
+          {
+            "id": "m11-1",
+            "description": "Not showing evidence of academic preparedness (e.g., GPA or advisor support)"
+          },
+          {
+            "id": "m11-2",
+            "description": "Failing to specify the reason or benefit of the extra credits"
+          },
+          {
+            "id": "m11-3",
+            "description": "Ignoring the official overload policy or not mentioning prerequisites"
+          },
+          {
+            "id": "m11-4",
+            "description": "Being too informal or demanding in tone"
+          }
+        ],
+        "scenario": {
+          "context": "You want to enroll in 21 credits next semester to complete a special research elective. You have a strong GPA and advisor support, and now need official permission.",
+          "requirements": [
+            "Provide your academic standing (e.g., GPA, year)",
+            "Explain why you need extra credits",
+            "Mention advisor endorsement if available"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of clarity in academic reasoning",
+            "Evaluation of tone and adherence to policy",
+            "Assessment of supporting evidence (e.g., advisor letter, GPA)"
+          ],
+          "checklistItems": [
+            {
+              "id": "c11-1",
+              "description": "Stated current academic status and GPA"
+            },
+            {
+              "id": "c11-2",
+              "description": "Explained clearly why extra credits are needed"
+            },
+            {
+              "id": "c11-3",
+              "description": "Attached or mentioned advisor support"
+            },
+            {
+              "id": "c11-4",
+              "description": "Referred to relevant policy or procedure"
+            },
+            {
+              "id": "c11-5",
+              "description": "Maintained a professional and respectful tone"
+            }
+          ]
+        },
+        "contentCards": [
+          "Check your institution’s maximum credit policies",
+          "Compile a compelling reason (graduation timeline, special program)",
+          "Highlight strong academic performance or relevant experience",
+          "Obtain a support letter from your advisor if possible",
+          "Use clear and concise language",
+          "Refer to specific policy codes if known",
+          "Be prepared to adjust if the committee imposes conditions",
+          "Express gratitude for their time and review",
+          "Allow enough lead time for processing the request",
+          "Demonstrating preparedness and responsibility is key to securing an overload approval."
+        ],
+        "resourceCards": [
+          "Q: Can I request an overload if my GPA is below 3.0?\nA: Policies vary, but most institutions require a solid GPA. Consult your advisor or department guidelines.",
+          "Q: What if the committee denies my request?\nA: Inquire politely about their reasons and see if an appeal or alternative arrangement is possible.",
+          "Q: How quickly should I expect a response?\nA: This depends on your institution’s procedures. Generally, allow 1-2 weeks, and follow up if necessary."
+        ]
+      },
+      {
+        "id": "apology-late-submission",
+        "title": "Apology for Late Assignment Submission",
+        "order": 12,
+        "category": "administrative",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for an apology email regarding late submission",
+            "example": "Apology and Late Submission - English Literature Essay"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content apologizing and providing a brief explanation for late work",
+            "example": "Dear Professor Green,\n\nI would like to sincerely apologize for submitting my English Literature essay past the deadline. I experienced unexpected family circumstances that prevented me from completing the essay on time. I understand any penalties that may apply.\n\nThank you for your understanding.\n\nSincerely,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 2,
+          "scale": 5,
+          "factors": [
+            "Sincerity of apology",
+            "Taking responsibility",
+            "Respecting policy on late work"
+          ],
+          "baseCompletionPoints": 15,
+          "bonusMultiplier": 1.1
+        },
+        "requiredEloRating": 135,
+        "commonMistakes": [
+          {
+            "id": "m12-1",
+            "description": "Offering excessive excuses instead of a concise explanation"
+          },
+          {
+            "id": "m12-2",
+            "description": "Failing to acknowledge the late penalty policy"
+          },
+          {
+            "id": "m12-3",
+            "description": "Using an overly casual or insincere tone"
+          },
+          {
+            "id": "m12-4",
+            "description": "Not proposing a plan to prevent future lateness"
+          }
+        ],
+        "scenario": {
+          "context": "You submitted an important assignment one day late due to unforeseen circumstances. You need to apologize and acknowledge any academic penalty.",
+          "requirements": [
+            "Acknowledge the late submission",
+            "Offer a genuine apology",
+            "Accept policy-based penalties"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of sincerity in apology",
+            "Evaluation of personal responsibility taken",
+            "Assessment of acknowledgement of potential penalties"
+          ],
+          "checklistItems": [
+            {
+              "id": "c12-1",
+              "description": "Clearly stated the assignment and date of late submission"
+            },
+            {
+              "id": "c12-2",
+              "description": "Apologized sincerely without excessive detail"
+            },
+            {
+              "id": "c12-3",
+              "description": "Acknowledged the professor’s or institution’s late policy"
+            },
+            {
+              "id": "c12-4",
+              "description": "Expressed willingness to accept the penalty"
+            },
+            {
+              "id": "c12-5",
+              "description": "Mentioned preventive measures for future"
+            }
+          ]
+        },
+        "contentCards": [
+          "Send your apology as soon as possible after missing the deadline",
+          "Keep your explanation brief and honest",
+          "Acknowledge the professor’s time and effort",
+          "Offer any supporting documents only if necessary",
+          "Accept the consequences gracefully",
+          "Reassure the professor you will prevent future recurrences",
+          "Do not blame others or external factors excessively",
+          "If you need an extension, politely request it in advance next time",
+          "Follow up if needed, but don’t badger the professor",
+          "Taking responsibility promptly can mitigate the impact on your academic standing."
+        ],
+        "resourceCards": [
+          "Q: Should I include personal details about the unforeseen circumstances?\nA: Keep it brief; sharing extensive details can seem like oversharing or making excuses.",
+          "Q: Do I need to ask for an extension retroactively?\nA: You can mention if you’d appreciate consideration, but be prepared for the standard late penalty unless policy states otherwise.",
+          "Q: What if the professor doesn’t respond?\nA: They may note your apology and penalty internally. If you need confirmation, wait a few days before politely following up."
+        ]
+      },
+      {
+        "id": "professional-thank-you",
+        "title": "Professional Thank-You Note",
+        "order": 13,
+        "category": "professional",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for a professional thank-you email",
+            "example": "Thank You - Informational Interview Follow-Up"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Thank-you email expressing appreciation and highlighting key takeaways",
+            "example": "Hello [Name],\n\nThank you for taking the time to speak with me about your experience in the marketing industry. Your insights on campaign analytics and brand storytelling were incredibly valuable. I look forward to staying in touch and applying your advice in my next project.\n\nBest,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 2,
+          "scale": 5,
+          "factors": [
+            "Timeliness",
+            "Specificity in gratitude",
+            "Maintaining a professional relationship"
+          ],
+          "baseCompletionPoints": 15,
+          "bonusMultiplier": 1.1
+        },
+        "requiredEloRating": 200,
+        "commonMistakes": [
+          {
+            "id": "m13-1",
+            "description": "Being vague or generic about what you are thanking them for"
+          },
+          {
+            "id": "m13-2",
+            "description": "Waiting too long (more than a week) to send your thanks"
+          },
+          {
+            "id": "m13-3",
+            "description": "Forgetting to mention how their advice or help benefited you"
+          },
+          {
+            "id": "m13-4",
+            "description": "Not leaving the door open for future communication"
+          }
+        ],
+        "scenario": {
+          "context": "You had an informational interview or meeting with a professional who shared career advice. You want to express genuine appreciation and keep the connection warm.",
+          "requirements": [
+            "Reference the conversation topic or advice given",
+            "Express how their help impacted you",
+            "Leave an opening for future dialogue"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of personalization in the note",
+            "Evaluation of how well you articulate what you learned",
+            "Assessment of politeness and invitation for continued connection"
+          ],
+          "checklistItems": [
+            {
+              "id": "c13-1",
+              "description": "Mentioned the specific meeting or call context"
+            },
+            {
+              "id": "c13-2",
+              "description": "Expressed tangible gratitude or takeaway"
+            },
+            {
+              "id": "c13-3",
+              "description": "Kept the tone warm yet professional"
+            },
+            {
+              "id": "c13-4",
+              "description": "Invited future communication (lightly)"
+            },
+            {
+              "id": "c13-5",
+              "description": "Sent in a timely manner (within 2-3 days)"
+            }
+          ]
+        },
+        "contentCards": [
+          "Send your thank-you note promptly, ideally within 48 hours",
+          "Be specific about what you found valuable",
+          "Keep it short and to the point",
+          "Reiterate your appreciation",
+          "Sign off professionally",
+          "Mention any next steps or follow-up you plan to take",
+          "Avoid overly formal language; a warm tone is helpful",
+          "Double-check for typos and grammar",
+          "A thoughtful thank-you can strengthen professional relationships",
+          "Stay connected on LinkedIn or via email if they’re open to it"
+        ],
+        "resourceCards": [
+          "Q: Should I offer anything in return for their help?\nA: If relevant, you can offer assistance or resources that might be valuable to them, but don’t force it.",
+          "Q: Can I send a handwritten note?\nA: If you have their mailing address and believe it’s appropriate, a handwritten note can be a nice personal touch. Otherwise, email is perfectly acceptable.",
+          "Q: How do I ensure I keep the relationship warm?\nA: Occasionally share updates about how their advice has helped you or send relevant articles/opportunities you think they’d appreciate."
+        ]
+      },
+      {
+        "id": "graduate-program-intent",
+        "title": "Letter of Intent for Graduate Program",
+        "order": 14,
+        "category": "academic",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for your letter of intent email",
+            "example": "Application Letter of Intent - MS in Computer Science"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content summarizing academic background and motivation for the graduate program",
+            "example": "Dear Graduate Admissions Committee,\n\nI am writing to express my strong interest in the MS in Computer Science program at XYZ University. My background includes research in machine learning at ABC Lab, and I am eager to further explore this field under the guidance of your esteemed faculty.\n\nThank you for considering my application.\n\nSincerely,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 4,
+          "scale": 5,
+          "factors": [
+            "Academic motivations",
+            "Highlighting research interests",
+            "Formal admissions process"
+          ],
+          "baseCompletionPoints": 30,
+          "bonusMultiplier": 1.4
+        },
+        "requiredEloRating": 140,
+        "commonMistakes": [
+          {
+            "id": "m14-1",
+            "description": "Failing to tailor the intent letter to the specific program"
+          },
+          {
+            "id": "m14-2",
+            "description": "Not showcasing your relevant background or achievements"
+          },
+          {
+            "id": "m14-3",
+            "description": "Being too generic about your research interests"
+          },
+          {
+            "id": "m14-4",
+            "description": "Omitting your future career or research goals"
+          }
+        ],
+        "scenario": {
+          "context": "You are applying for a master's program and need to provide a letter of intent highlighting your motivation, research interests, and fit with the program.",
+          "requirements": [
+            "Highlight key academic experiences",
+            "Explain your research interests or focus",
+            "Show alignment with the program’s strengths"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of how well you connect your background to the program’s offerings",
+            "Evaluation of clarity and focus in research/academic goals",
+            "Assessment of professional and enthusiastic tone"
+          ],
+          "checklistItems": [
+            {
+              "id": "c14-1",
+              "description": "Stated clear academic and research interests"
+            },
+            {
+              "id": "c14-2",
+              "description": "Referenced specific elements of the program (faculty, labs, resources)"
+            },
+            {
+              "id": "c14-3",
+              "description": "Highlighted relevant past experiences or achievements"
+            },
+            {
+              "id": "c14-4",
+              "description": "Expressed future career or research goals"
+            },
+            {
+              "id": "c14-5",
+              "description": "Maintained a formal, respectful tone"
+            }
+          ]
+        },
+        "contentCards": [
+          "Research the specific faculty and labs associated with the program",
+          "Show how your background complements the program’s focus",
+          "Emphasize your unique qualifications and experiences",
+          "Keep language formal but engaging",
+          "Be concise—admissions committees read many letters",
+          "Highlight any publications, presentations, or notable projects",
+          "Mention your long-term career or research trajectory",
+          "Double-check for grammar, clarity, and specificity",
+          "Ensure your statement aligns with the program’s mission or strengths",
+          "A strong letter of intent can distinguish you in a competitive admissions pool"
+        ],
+        "resourceCards": [
+          "Q: Should I mention potential faculty I’d like to work with?\nA: Yes, if you’ve researched their work and can articulate why you’d be a good fit. Be specific in referencing their lab or research areas.",
+          "Q: How long should my letter of intent be?\nA: Typically 1-2 pages (or the word limit set by the program). Focus on quality over length.",
+          "Q: Is it okay to mention personal motivations?\nA: Yes, but keep it relevant and professional. Show how your personal drive connects to your academic goals."
+        ]
+      },
+      {
+        "id": "grant-request",
+        "title": "Academic Grant Funding Request",
+        "order": 15,
+        "category": "professional",
+        "submissionTemplate": {
+          "subjectLine": {
+            "type": "string",
+            "required": true,
+            "maxLength": 100,
+            "description": "Subject line for requesting research grant funding",
+            "example": "Grant Funding Request - AI Ethics Research Proposal"
+          },
+          "body": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2000,
+            "description": "Email content outlining your project proposal, funding needs, and potential impact",
+            "example": "Dear Grants Committee,\n\nI am reaching out to request funding for my AI Ethics Research Proposal, which aims to investigate bias detection methods in machine learning models. Enclosed is a brief proposal detailing objectives, methodology, and the projected timeline. The requested funds will primarily cover data acquisition and computational resources.\n\nThank you for your consideration.\n\nSincerely,\n[Your Name]"
+          }
+        },
+        "difficulty": {
+          "score": 5,
+          "scale": 5,
+          "factors": [
+            "Detailed project outline",
+            "Financial justification",
+            "Formal committee review process"
+          ],
+          "baseCompletionPoints": 35,
+          "bonusMultiplier": 1.5
+        },
+        "requiredEloRating": 220,
+        "commonMistakes": [
+          {
+            "id": "m15-1",
+            "description": "Not providing a clear budget breakdown or justification"
+          },
+          {
+            "id": "m15-2",
+            "description": "Being vague about the research methodology or impact"
+          },
+          {
+            "id": "m15-3",
+            "description": "Failing to follow the specific grant application guidelines"
+          },
+          {
+            "id": "m15-4",
+            "description": "Overlooking required attachments or references"
+          }
+        ],
+        "scenario": {
+          "context": "You are seeking a research grant for a graduate-level or professional project on AI ethics. You need to clearly present your proposal, justify the budget, and attach supporting documents.",
+          "requirements": [
+            "Include a concise project description",
+            "Outline the budget and justification for requested funds",
+            "Reference the potential impact or deliverables of your research"
+          ]
+        },
+        "rubric": {
+          "aiFeedbackPoints": [
+            "Analysis of clarity in describing project objectives and methods",
+            "Evaluation of budget details and justification",
+            "Assessment of alignment with grant committee expectations"
+          ],
+          "checklistItems": [
+            {
+              "id": "c15-1",
+              "description": "Provided a succinct project overview (objectives, significance)"
+            },
+            {
+              "id": "c15-2",
+              "description": "Included an itemized budget or at least a cost breakdown"
+            },
+            {
+              "id": "c15-3",
+              "description": "Justified the need for each budget item"
+            },
+            {
+              "id": "c15-4",
+              "description": "Mentioned expected outcomes or deliverables"
+            },
+            {
+              "id": "c15-5",
+              "description": "Adhered to any stated grant proposal guidelines"
+            }
+          ]
+        },
+        "contentCards": [
+          "Thoroughly review the grant’s requirements before submission",
+          "Demonstrate how your research fits with the funding organization's goals",
+          "Showcase the potential academic or social impact of your work",
+          "Provide a realistic, detailed budget breakdown",
+          "Ensure your proposal is succinct and well-structured",
+          "Include any preliminary data or references if available",
+          "Highlight your qualifications or relevant experience",
+          "Address possible challenges or limitations",
+          "Proofread for professionalism and clarity",
+          "A well-organized, compelling request increases your chances of securing funding."
+        ],
+        "resourceCards": [
+          "Q: How detailed should my budget be?\nA: Include line items for major expenses (e.g., software licenses, data fees, equipment) and show how each item contributes to the project goals.",
+          "Q: Can I request more funding later if needed?\nA: This depends on the grant’s rules. Typically, you should request the full amount needed upfront or provide clear stages for additional funding.",
+          "Q: What if my proposal is declined?\nA: Politely ask for feedback. You can often revise and resubmit for future calls or apply to other funding sources."
+        ]
       }
     ],
     "metadata": {
       "version": "1.0",
       "lastUpdated": "2025-02-19",
-      "totalModules": 5,
+      "totalModules": 15,
       "estimatedCompletionTime": "2.5 hours",
       "eloCalculation": {
         "description": "Algorithm for calculating Elo points gained from completion",
@@ -599,7 +1661,3 @@
     }
   }
 }
-
-
-
-

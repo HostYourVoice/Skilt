@@ -924,7 +924,7 @@ struct LearningTreeView: View {
     @State private var courses: [Course] = []
     @State private var categorizedCourses: [CategoryWithCourses] = []
     @State private var selectedCourse: Course?
-    @State private var sortOption: SortOption = .difficulty
+    @State private var sortOption: SortOption = .eloRating
     @State private var expandedCategories: Set<String> = []
     @State private var searchText = ""
     @State private var newlyUnlockedCourses: Set<String> = []
@@ -1249,9 +1249,9 @@ struct LearningTreeView: View {
             // Sort according to the selected option
             sortCoursesBySelectedOption()
             
-            // Auto-expand categories with few courses
+            // Auto-expand categories with few courses - updated to show categories with 5 or fewer courses
             expandedCategories = Set(categorizedCourses
-                .filter { $0.courses.count < 3 }
+                .filter { $0.courses.count <= 5 }
                 .map { $0.id })
             
         } catch {
@@ -1266,7 +1266,7 @@ struct LearningTreeView: View {
             case .difficulty:
                 categorizedCourses[i].courses.sort { $0.difficulty > $1.difficulty }
             case .eloRating:
-                categorizedCourses[i].courses.sort { $0.eloRequired > $1.eloRequired }
+                categorizedCourses[i].courses.sort { $0.eloRequired < $1.eloRequired }
             case .name:
                 categorizedCourses[i].courses.sort { $0.name < $1.name }
             }
@@ -1277,7 +1277,7 @@ struct LearningTreeView: View {
         case .difficulty:
             categorizedCourses.sort { $0.averageDifficulty > $1.averageDifficulty }
         case .eloRating:
-            categorizedCourses.sort { $0.minEloRequired > $1.minEloRequired }
+            categorizedCourses.sort { $0.minEloRequired < $1.minEloRequired }
         case .name:
             categorizedCourses.sort { $0.name < $1.name }
         }
