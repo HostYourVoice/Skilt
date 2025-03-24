@@ -134,7 +134,7 @@ final class ModuleQuestionsStore {
                             exerciseId: exerciseId
                         )
                         
-                                           // Convert score and points to Double for percentage calculation
+                        // Convert score and points to Double for percentage calculation
                         let newTotalSubmissions = question.totalSubmissions + 1
                         
                         // Calculate the current total score percentage
@@ -159,31 +159,7 @@ final class ModuleQuestionsStore {
                             newDifficulty = 5
                         }
                         
-                            // Update difficulty in Supabase and CourseStore
-                            
-                            // Update the question locally with new difficulty
-                            let updatedQuestion = ModuleQuestion(
-                                title: question.title,
-                                scenario: question.scenario,
-                                question: question.question,
-                                options: question.options,
-                                correctAnswer: question.correctAnswer,
-                                explanation: question.explanation,
-                                averageScorePercentage: Double(newDifficulty),
-                                totalSubmissions: Int(newAverageScorePercentage),
-                                difficulty: newTotalSubmissions,
-                                points: question.points,
-                                altRow: question.altRow,
-                                rubricPoints: question.rubricPoints,
-                                checklistItems: question.checklistItems,
-                                aiFeedbackPoints: question.aiFeedbackPoints,
-                                contentCards: question.contentCards ?? [],
-                                resourceCards: question.resourceCards ?? []
-                            )
-                            
-                            // Comment out this line to prevent the feedback from being cleared
-                            // self.questions[questionIndex] = updatedQuestion
-                
+                    
                              
                     } else {
                         // Fallback to random score if AI feedback fails

@@ -52,6 +52,19 @@ final class UserProfile {
     // Add dictionary to store exercise scores
     internal var userExerciseScores: [String: Int] = [:]
     
+    // Add structure to store exercise averages and related metrics
+    internal struct ExerciseMetrics {
+        var difficulty: Double
+        var totalSubmissions: Int
+        var averageScorePercentage: Double
+        var averageScore: Double
+        var latestScore: Double
+        var latestScorePercentage: Double
+    }
+    
+    // Dictionary to store exercise metrics
+    internal var exerciseMetrics: [String: ExerciseMetrics] = [:]
+    
     // Update user profile with Google sign-in data
     func updateProfile(name: String?, email: String?, profilePictureURL: URL?, userId: String?, givenName: String? = nil, familyName: String? = nil, idToken: String? = nil) {
         self.displayName = name ?? "Anonymous User"
@@ -162,7 +175,8 @@ final class UserProfile {
             "userProfile_longestStreak",
             "userProfile_lastActivityDate",
             "userProfile_streakFreeze",
-            "userProfile_exerciseScores"
+            "userProfile_exerciseScores",
+            "userProfile_exerciseMetrics"
         ]
         
         for key in keysToRemove {
@@ -306,6 +320,10 @@ final class UserProfile {
         userDefaults.set(longestStreak, forKey: "userProfile_longestStreak")
         userDefaults.set(lastActivityDate, forKey: "userProfile_lastActivityDate")
         userDefaults.set(streakFreeze, forKey: "userProfile_streakFreeze")
+        
+        // Save exercise scores and metrics
+        saveExerciseScoresToUserDefaults()
+        saveExerciseMetricsToUserDefaults()
     }
     
     // Load profile from UserDefaults
@@ -340,6 +358,9 @@ final class UserProfile {
         
         // Load exercise scores
         loadExerciseScoresFromUserDefaults()
+        
+        // Load exercise metrics
+        loadExerciseMetricsFromUserDefaults()
     }
     
     // Add method to update exercise scores and recalculate ELO rating
@@ -378,6 +399,49 @@ final class UserProfile {
     // Computed property to get the count of completed exercises
     var completedExercisesCount: Int {
         return userExerciseScores.count
+    }
+    
+    // Update exercise metrics and save to UserDefaults
+    func updateExerciseScoresAverages(
+        moduleId: String,
+        difficulty: Double,
+        totalSubmissions: Int,
+        averageScorePercentage: Double,
+        averageScore: Double,
+        latestScore: Double,
+        latestScorePercentage: Double
+    ) {
+        // Store the metrics for this exercise
+        exerciseMetrics[moduleId] = ExerciseMetrics(
+            difficulty: difficulty,
+            totalSubmissions: totalSubmissions,
+            averageScorePercentage: averageScorePercentage,
+            averageScore: averageScore,
+            latestScore: latestScore,
+            latestScorePercentage: latestScorePercentage
+        )
+        
+        // Save to UserDefaults
+        saveExerciseMetricsToUserDefaults()
+        
+        // Optionally update ELO rating based on latest score
+        updateExerciseScore(exerciseId: moduleId, score: Int(latestScore))
+        
+        print("DEBUG: Updated metrics for exercise \(moduleId): difficulty=\(difficulty), submissions=\(totalSubmissions), avgScore=\(averageScore)")
+    }
+    
+    // Add methods to save and load exercise metrics
+    private func saveExerciseMetricsToUserDefaults() {
+        if let data = try? JSONEncoder().encode(exerciseMetrics) {
+            UserDefaults.standard.set(data, forKey: "userProfile_exerciseMetrics")
+        }
+    }
+    
+    private func loadExerciseMetricsFromUserDefaults() {
+        if let data = UserDefaults.standard.data(forKey: "userProfile_exerciseMetrics"),
+           let metrics = try? JSONDecoder().decode([String: ExerciseMetrics].self, from: data) {
+            exerciseMetrics = metrics
+        }
     }
 }
 
