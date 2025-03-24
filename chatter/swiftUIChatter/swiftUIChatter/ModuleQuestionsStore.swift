@@ -181,8 +181,8 @@ final class ModuleQuestionsStore {
                                 resourceCards: question.resourceCards ?? []
                             )
                             
-                            // Update the question in the array
-                            self.questions[questionIndex] = updatedQuestion
+                            // Comment out this line to prevent the feedback from being cleared
+                            // self.questions[questionIndex] = updatedQuestion
                 
                              
                     } else {
