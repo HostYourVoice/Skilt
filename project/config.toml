@@ -1,2 +1,1 @@
-openai_api_key = "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"
 log_level = "info"  # https://docs.python.org/3/library/logging.html#levels
