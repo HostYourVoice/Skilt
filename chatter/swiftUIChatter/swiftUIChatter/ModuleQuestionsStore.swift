@@ -78,8 +78,8 @@ final class ModuleQuestionsStore {
             // Simulate evaluation time
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 // Find the question
-                guard let question = self.questions.first(where: { $0.id == questionId }) else { return }
-                
+                guard let questionIndex = self.questions.firstIndex(where: { $0.id == questionId }) else { return }
+                let question = self.questions[questionIndex]                
                 let maxPoints = question.points
                 let score = Int.random(in: (maxPoints * 6/10)...maxPoints)
                 
@@ -134,9 +134,57 @@ final class ModuleQuestionsStore {
                             exerciseId: exerciseId
                         )
                         
-                        if !success {
-                            print("Failed to save submission with scoring data to Supabase")
+                                           // Convert score and points to Double for percentage calculation
+                        let newTotalSubmissions = question.totalSubmissions + 1
+                        
+                        // Calculate the current total score percentage
+                        let currentTotalScorePercentage = question.averageScorePercentage * Double(question.totalSubmissions)
+                        
+                        // Calculate the new score percentage
+                        let newScorePercentage = Double(score) / Double(question.points)
+                        
+                        // Calculate the new average score percentage
+                        let newAverageScorePercentage = (currentTotalScorePercentage + newScorePercentage) / Double(newTotalSubmissions)
+    
+                        let newDifficulty: Int
+                        if newAverageScorePercentage >= 0.8 {
+                            newDifficulty = 1
+                        } else if newAverageScorePercentage >= 0.6 {
+                            newDifficulty = 2
+                        } else if newAverageScorePercentage >= 0.4 {
+                            newDifficulty = 3
+                        } else if newAverageScorePercentage >= 0.2 {
+                            newDifficulty = 4
+                        } else {
+                            newDifficulty = 5
                         }
+                        
+                            // Update difficulty in Supabase and CourseStore
+                            
+                            // Update the question locally with new difficulty
+                            let updatedQuestion = ModuleQuestion(
+                                title: question.title,
+                                scenario: question.scenario,
+                                question: question.question,
+                                options: question.options,
+                                correctAnswer: question.correctAnswer,
+                                explanation: question.explanation,
+                                averageScorePercentage: Double(newDifficulty),
+                                totalSubmissions: Int(newAverageScorePercentage),
+                                difficulty: newTotalSubmissions,
+                                points: question.points,
+                                altRow: question.altRow,
+                                rubricPoints: question.rubricPoints,
+                                checklistItems: question.checklistItems,
+                                aiFeedbackPoints: question.aiFeedbackPoints,
+                                contentCards: question.contentCards ?? [],
+                                resourceCards: question.resourceCards ?? []
+                            )
+                            
+                            // Update the question in the array
+                            self.questions[questionIndex] = updatedQuestion
+                
+                             
                     } else {
                         // Fallback to random score if AI feedback fails
                         self.submissionStatuses[questionId] = .completed(score: score, feedback: feedback)
@@ -436,7 +484,9 @@ Focus on evaluating:
                 ],
                 correctAnswer: Int.random(in: 0...3),
                 explanation: "This scenario tests your understanding of \(course.category) principles and best practices in email communication.",
-                difficulty: difficulty,
+                averageScorePercentage: Double(difficulty),
+                totalSubmissions: Int(0.0),
+                difficulty: 0,
                 points: points,
                 altRow: false,
                 rubricPoints: rubricPoints,
@@ -513,7 +563,9 @@ Focus on evaluating:
                     ],
                     correctAnswer: Int.random(in: 0...3),
                     explanation: "This scenario tests your understanding of \(course.category) principles and best practices in email communication.",
-                    difficulty: difficulty,
+                    averageScorePercentage: Double(difficulty),
+                    totalSubmissions: Int(Double.random(in: 0...1)),
+                    difficulty: Int.random(in: 0...50), // Random number of submissions for mock data
                     points: points,
                     altRow: i % 2 == 1,
                     rubricPoints: rubricPoints,

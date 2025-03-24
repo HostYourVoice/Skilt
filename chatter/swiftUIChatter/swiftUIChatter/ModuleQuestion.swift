@@ -15,6 +15,8 @@ struct ModuleQuestion: Identifiable {
     let options: [String]
     let correctAnswer: Int
     let explanation: String
+    let averageScorePercentage: Double
+    let totalSubmissions: Int
     let difficulty: Int
     let points: Int
     let altRow: Bool
