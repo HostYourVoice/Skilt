@@ -388,6 +388,8 @@ Focus on evaluating:
         // Extract detailed rubric items if available
         var checklistItems: [ChecklistItem] = []
         var aiFeedbackPoints: [String] = []
+        var contentCards: [String] = []
+        var resourceCards: [String] = []
         
         if let rubric = module.rubric {
             // Extract checklist items
@@ -399,6 +401,14 @@ Focus on evaluating:
             if let feedbackPoints = rubric.aiFeedbackPoints {
                 aiFeedbackPoints = feedbackPoints
             }
+        }
+        
+        // Extract content and resource cards
+        if let contentCardsData = module.contentCards {
+            contentCards = contentCardsData
+        }
+        if let resourceCardsData = module.resourceCards {
+            resourceCards = resourceCardsData
         }
         
         // Format question based on requirements
@@ -431,7 +441,9 @@ Focus on evaluating:
                 altRow: false,
                 rubricPoints: rubricPoints,
                 checklistItems: checklistItems,
-                aiFeedbackPoints: aiFeedbackPoints
+                aiFeedbackPoints: aiFeedbackPoints,
+                contentCards: contentCards,
+                resourceCards: resourceCards
             )
         )
         
@@ -506,7 +518,9 @@ Focus on evaluating:
                     altRow: i % 2 == 1,
                     rubricPoints: rubricPoints,
                     checklistItems: [],
-                    aiFeedbackPoints: []
+                    aiFeedbackPoints: [],
+                    contentCards: [],
+                    resourceCards: []
                 )
             )
         }

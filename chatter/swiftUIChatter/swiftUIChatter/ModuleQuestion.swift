@@ -25,6 +25,10 @@ struct ModuleQuestion: Identifiable {
     // Detailed rubric criteria
     let checklistItems: [ChecklistItem]
     let aiFeedbackPoints: [String]
+    
+    // Content and resource cards
+    let contentCards: [String]
+    let resourceCards: [String]
 }
 
 // Struct for detailed checklist items

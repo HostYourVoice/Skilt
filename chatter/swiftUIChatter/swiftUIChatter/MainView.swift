@@ -37,6 +37,8 @@ struct ModuleInfo: Codable {
     let requiredEloRating: Int
     let scenario: ScenarioInfo?
     let rubric: RubricInfo?
+    let contentCards: [String]?
+    let resourceCards: [String]?
     // Other fields omitted for brevity
 }
 
