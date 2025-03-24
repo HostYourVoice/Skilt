@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-// Course models to parse JSON data
+// JSON Data Models
 struct CourseData: Codable {
-    let course: CourseInfo
+    var course: CourseInfo
 }
 
 struct CourseInfo: Codable {
     let id: String
     let title: String
     let categories: [CategoryInfo]
-    let modules: [ModuleInfo]
+    var modules: [ModuleInfo]
     let metadata: MetadataInfo
 }
 
@@ -33,19 +33,36 @@ struct ModuleInfo: Codable {
     let title: String
     let order: Int
     let category: String
-    let difficulty: DifficultyInfo
+    let submissionTemplate: SubmissionTemplate
+    var difficulty: DifficultyInfo
     let requiredEloRating: Int
-    let scenario: ScenarioInfo?
-    let rubric: RubricInfo?
-    // Other fields omitted for brevity
+    let commonMistakes: [CommonMistake]
+    let scenario: ScenarioInfo
+    let rubric: RubricInfo
 }
 
-struct RubricInfo: Codable {
-    let aiFeedbackPoints: [String]?
-    let checklistItems: [ChecklistItemInfo]?
+struct SubmissionTemplate: Codable {
+    let subjectLine: TemplateField
+    let body: TemplateField
 }
 
-struct ChecklistItemInfo: Codable {
+struct TemplateField: Codable {
+    let type: String
+    let required: Bool
+    let maxLength: Int
+    let description: String
+    let example: String
+}
+
+struct DifficultyInfo: Codable {
+    var score: Int
+    let scale: Int
+    let factors: [String]
+    let baseCompletionPoints: Int
+    let bonusMultiplier: Double
+}
+
+struct CommonMistake: Codable {
     let id: String
     let description: String
 }
@@ -55,12 +72,14 @@ struct ScenarioInfo: Codable {
     let requirements: [String]
 }
 
-struct DifficultyInfo: Codable {
-    let score: Int
-    let scale: Int
-    let factors: [String]
-    let baseCompletionPoints: Int
-    let bonusMultiplier: Double
+struct RubricInfo: Codable {
+    let aiFeedbackPoints: [String]
+    let checklistItems: [ChecklistItemInfo]
+}
+
+struct ChecklistItemInfo: Codable {
+    let id: String
+    let description: String
 }
 
 struct MetadataInfo: Codable {
@@ -68,10 +87,9 @@ struct MetadataInfo: Codable {
     let lastUpdated: String
     let totalModules: Int
     let estimatedCompletionTime: String
-    // Other fields omitted for brevity
 }
 
-// Updated Course model
+// UI-specific Course model
 struct Course: Identifiable, Hashable {
     let id: UUID = UUID()
     let name: String
@@ -82,9 +100,8 @@ struct Course: Identifiable, Hashable {
     let maxDifficulty: Int
     let eloRequired: Int
     let category: String
-    let moduleId: String  // Added to reference back to the original module
+    let moduleId: String
     
-    // Adding Hashable conformance
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -94,7 +111,7 @@ struct Course: Identifiable, Hashable {
     }
 }
 
-// Adding a struct to represent a category with its courses
+// UI-specific category model
 struct CategoryWithCourses: Identifiable {
     let id: String
     let name: String
@@ -915,6 +932,224 @@ struct SettingsView: View {
     }
 }
 
+// Add this new view before LearningTreeView
+struct ModuleView: View {
+    let course: Course
+    @State private var answer: String = ""
+    @State private var isSubmitting = false
+    @State private var submissionStatus: SubmissionStatus = .notSubmitted
+    @State private var score: Int?
+    @State private var feedback: String?
+    @State private var totalSubmissions: Int = 0
+    @State private var averageScorePercentage: Double = 0.0
+    
+    enum SubmissionStatus {
+        case notSubmitted
+        case submitted
+        case evaluating
+        case completed(score: Int, feedback: String)
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Module header
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(course.name)
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    Text("Difficulty: \(course.difficulty)/\(course.maxDifficulty)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    if totalSubmissions > 0 {
+                        Text("Average Score: \(Int(averageScorePercentage * 100))%")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.bottom)
+                
+                // Get module info from CourseStore
+                if let module = CourseStore.shared.getModule(byId: course.moduleId) {
+                    // Scenario section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Scenario")
+                            .font(.headline)
+                        
+                        Text(module.scenario.context)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.bottom)
+                    
+                    // Requirements section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Requirements")
+                            .font(.headline)
+                        
+                        ForEach(module.scenario.requirements, id: \.self) { requirement in
+                            HStack(alignment: .top) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text(requirement)
+                            }
+                        }
+                    }
+                    .padding(.bottom)
+                    
+                    // Submission section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Your Response")
+                            .font(.headline)
+                        
+                        TextEditor(text: $answer)
+                            .frame(height: 200)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        
+                        // Submit button
+                        Button(action: submitAnswer) {
+                            if isSubmitting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Text("Submit")
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                        .disabled(answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSubmitting)
+                    }
+                    .padding(.bottom)
+                    
+                    // Feedback section (if available)
+                    if let score = score, let feedback = feedback {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Feedback")
+                                .font(.headline)
+                            
+                            HStack {
+                                Text("Score: \(score)/\(module.difficulty.baseCompletionPoints)")
+                                    .fontWeight(.medium)
+                                
+                                Spacer()
+                                
+                                Text("\(Int(Double(score) / Double(module.difficulty.baseCompletionPoints) * 100))%")
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Text(feedback)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Load existing submission data
+            if let submission = CourseStore.shared.getModuleSubmissions(moduleId: course.moduleId) {
+                totalSubmissions = submission.totalSubmissions
+                averageScorePercentage = submission.averageScorePercentage
+            }
+        }
+    }
+    
+    private func submitAnswer() {
+        guard !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        isSubmitting = true
+        submissionStatus = .submitted
+        
+        // Simulate evaluation process
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            submissionStatus = .evaluating
+            
+            // Simulate evaluation time
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                if let module = CourseStore.shared.getModule(byId: course.moduleId) {
+                    // Generate a random score between 60-100% of max points
+                    let maxPoints = module.difficulty.baseCompletionPoints
+                    let score = Int.random(in: (maxPoints * 6/10)...maxPoints)
+                    
+                    // Generate feedback
+                    let feedback = generateFeedback(score: score, maxPoints: maxPoints)
+                    
+                    // Update status
+                    self.score = score
+                    self.feedback = feedback
+                    self.submissionStatus = .completed(score: score, feedback: feedback)
+                    
+                    // Calculate new average score percentage
+                    let newTotalSubmissions = totalSubmissions + 1
+                    let currentTotalScorePercentage = averageScorePercentage * Double(totalSubmissions)
+                    let newScorePercentage = Double(score) / Double(maxPoints)
+                    let newAverageScorePercentage = (currentTotalScorePercentage + newScorePercentage) / Double(newTotalSubmissions)
+                    
+                    // Update local state
+                    self.totalSubmissions = newTotalSubmissions
+                    self.averageScorePercentage = newAverageScorePercentage
+                    
+                    // Save to CourseStore
+                    CourseStore.shared.updateModuleSubmissions(
+                        moduleId: course.moduleId,
+                        totalSubmissions: newTotalSubmissions,
+                        averageScorePercentage: newAverageScorePercentage
+                    )
+                    
+                    // Calculate new difficulty based on average score percentage
+                    let newDifficulty: Int
+                    if newAverageScorePercentage >= 0.8 {
+                        newDifficulty = 1
+                    } else if newAverageScorePercentage >= 0.6 {
+                        newDifficulty = 2
+                    } else if newAverageScorePercentage >= 0.4 {
+                        newDifficulty = 3
+                    } else if newAverageScorePercentage >= 0.2 {
+                        newDifficulty = 4
+                    } else {
+                        newDifficulty = 5
+                    }
+                    
+                    // Update difficulty in CourseStore
+                    Task {
+                        await CourseStore.shared.updateModuleDifficulty(
+                            moduleId: course.moduleId,
+                            newDifficulty: newDifficulty
+                        )
+                    }
+                }
+                
+                isSubmitting = false
+            }
+        }
+    }
+    
+    private func generateFeedback(score: Int, maxPoints: Int) -> String {
+        let percentage = Double(score) / Double(maxPoints)
+        
+        if percentage >= 0.9 {
+            return "Excellent work! Your response demonstrates a thorough understanding of the concepts covered in this module."
+        } else if percentage >= 0.8 {
+            return "Great job! Your response shows good comprehension of the key concepts, with minor areas for improvement."
+        } else if percentage >= 0.7 {
+            return "Good effort! Your submission addresses the main points, but could use more depth in some areas."
+        } else {
+            return "Your response shows basic understanding, but needs more development. Review the module materials and try again."
+        }
+    }
+}
+
 // Learning Tree View (former MainView content)
 struct LearningTreeView: View {
     private let store = SubmissionStore.shared
@@ -1017,7 +1252,7 @@ struct LearningTreeView: View {
                 PostView(isPresented: $isPresenting)
             }
             .navigationDestination(item: $selectedCourse) { course in
-                ModuleQuestionsView(course: course)
+                ModuleView(course: course)
             }
             .onAppear {
                 print("DEBUG: LearningTreeView.body appeared")
