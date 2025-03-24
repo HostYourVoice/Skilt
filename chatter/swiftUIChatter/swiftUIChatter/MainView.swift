@@ -828,8 +828,40 @@ struct EmptyView: View {
 
 // Settings View
 struct SettingsView: View {
+    private let store = SubmissionStore.shared
+    
     var body: some View {
         List {
+            // WordSmith Submissions section
+            Section {
+                if store.submissions.isEmpty {
+                    Text("No submissions available")
+                        .foregroundColor(.secondary)
+                        .italic()
+                        .padding()
+                        .onAppear {
+                            print("DEBUG: Submissions section is empty - no data available")
+                        }
+                } else {
+                    ForEach(store.submissions) { submission in
+                        SubmissionListRow(submission: submission)
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color(submission.altRow ?
+                                .systemGray5 : .systemGray6))
+                    }
+                    .onAppear {
+                        print("DEBUG: ForEach in submissions section has \(store.submissions.count) items")
+                    }
+                }
+            } header: {
+                Text("ALL WORDSMITH SUBMISSIONS")
+                    .textCase(.uppercase)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                    .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
+            }
+            
             Section(header: Text("Account").textCase(.uppercase)) {
                 NavigationLink(destination: Text("Account Information")) {
                     HStack {
@@ -917,8 +949,18 @@ struct SettingsView: View {
                 }
             }
         }
-        .navigationTitle("Settings")
+        .navigationTitle("Submissions")
         .navigationBarTitleDisplayMode(.inline)
+        .refreshable {
+            // Refresh submissions data when user pulls to refresh
+            await store.getSubmissions()
+        }
+        .onAppear {
+            // Load submissions when view appears
+            Task {
+                await store.getSubmissions()
+            }
+        }
     }
 }
 
@@ -1156,35 +1198,62 @@ struct LearningTreeView: View {
                 .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
             }
             
-            // Submissions section
+            // Latest submissions section (limited to 10)
             Section {
                 if store.submissions.isEmpty {
                     Text("No submissions available")
                         .foregroundColor(.secondary)
                         .italic()
                         .padding()
-                        .onAppear {
-                            print("DEBUG: Submissions section is empty - no data available")
-                        }
                 } else {
-                    ForEach(store.submissions) { submission in
+                    // Only show up to 10 submissions
+                    ForEach(Array(store.submissions.prefix(10))) { submission in
                         SubmissionListRow(submission: submission)
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(submission.altRow ?
                                 .systemGray5 : .systemGray6))
                     }
-                    .onAppear {
-                        print("DEBUG: ForEach in submissions section has \(store.submissions.count) items")
+                    
+                    // "View More" button that switches to the Submissions tab
+                    if store.submissions.count > 10 {
+                        Button {
+                            // This requires accessing the parent MainView to change tab
+                            NotificationCenter.default.post(name: NSNotification.Name("SwitchToSubmissionsTab"), object: nil)
+                        } label: {
+                            HStack {
+                                Text("View All \(store.submissions.count) Submissions")
+                                    .foregroundColor(.blue)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                
+                                Spacer()
+                                
+                                Text("+\(store.submissions.count - 10) more")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(12)
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.blue)
+                                    .font(.caption)
+                            }
+                            .padding(.vertical, 8)
+                        }
                     }
                 }
             } header: {
-                Text("MY WORDSMITH SUBMISSIONS")
+                Text("RECENT SUBMISSIONS")
                     .textCase(.uppercase)
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
                     .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 8, trailing: 16))
             }
+            
+            // Submissions section removed - moved to Settings tab
         }
         .listStyle(GroupedListStyle())
         .environment(\.defaultMinListRowHeight, 0) // Allow for more compact rows when needed
@@ -1338,8 +1407,8 @@ struct MainView: View {
             }
             .tag(2)
             .tabItem {
-                Image(systemName: "gearshape")
-                Text("Settings")
+                Image(systemName: "list.bullet")
+                Text("Submissions")
             }
         }
         .onAppear {
@@ -1390,6 +1459,15 @@ struct MainView: View {
                     }
                 }
             }
+            
+            // Set up notification observer for tab switching
+            NotificationCenter.default.addObserver(forName: NSNotification.Name("SwitchToSubmissionsTab"), object: nil, queue: .main) { _ in
+                selectedTab = 2  // Switch to Submissions tab
+            }
+        }
+        .onDisappear {
+            // Remove notification observer to prevent memory leak
+            NotificationCenter.default.removeObserver(self)
         }
     }
 }

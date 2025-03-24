@@ -430,17 +430,20 @@ struct ModuleQuestionsView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
                     Task {
-                        await testSubmitToSupabase()
+                        // await testSubmitToSupabase()
+                        // debug log share 
+                        print("DEBUG: Share button pressed")
+                        showingTestAlert = true
                     }
                 }) {
                     Image(systemName: "square.and.arrow.up")
                 }
             }
         }
-        .alert("Supabase Submission Test", isPresented: $showingTestAlert) {
+        .alert("Share Test", isPresented: $showingTestAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(testSubmissionResult ? "Submission successful!" : "Submission failed. Check console for details.")
+            Text(testSubmissionResult ? "Share successful!" : "Share failed. Check console for details.")
         }
     }
 }
