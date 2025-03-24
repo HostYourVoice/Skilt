@@ -52,6 +52,15 @@ final class UserProfile {
     // Add dictionary to store exercise scores
     internal var userExerciseScores: [String: Int] = [:]
     
+    // Define a structure for aggregate exercise data
+    struct ExerciseAggregateData: Codable {
+        var totalScores: Int
+        var totalSubmissions: Int
+    }
+    
+    // Add dictionary to store aggregate exercise data
+    internal var userAggregateExerciseScores: [String: ExerciseAggregateData] = [:]
+    
     // Update user profile with Google sign-in data
     func updateProfile(name: String?, email: String?, profilePictureURL: URL?, userId: String?, givenName: String? = nil, familyName: String? = nil, idToken: String? = nil) {
         self.displayName = name ?? "Anonymous User"
@@ -143,6 +152,7 @@ final class UserProfile {
         
         // Reset exercise scores
         userExerciseScores = [:]
+        userAggregateExerciseScores = [:]
         
         // Clear UserDefaults for all profile keys
         let userDefaults = UserDefaults.standard
@@ -162,7 +172,8 @@ final class UserProfile {
             "userProfile_longestStreak",
             "userProfile_lastActivityDate",
             "userProfile_streakFreeze",
-            "userProfile_exerciseScores"
+            "userProfile_exerciseScores",
+            "userProfile_aggregateExerciseScores"
         ]
         
         for key in keysToRemove {
@@ -359,12 +370,20 @@ final class UserProfile {
         
         // Save exercise scores to UserDefaults
         saveExerciseScoresToUserDefaults()
+        
+        // Update aggregate data for this exercise
+        updateExerciseAggregate(exerciseId: exerciseId, score: score)
     }
     
     // Add methods to save and load exercise scores
     private func saveExerciseScoresToUserDefaults() {
         if let data = try? JSONEncoder().encode(userExerciseScores) {
             UserDefaults.standard.set(data, forKey: "userProfile_exerciseScores")
+        }
+        
+        // Save aggregate exercise scores
+        if let data = try? JSONEncoder().encode(userAggregateExerciseScores) {
+            UserDefaults.standard.set(data, forKey: "userProfile_aggregateExerciseScores")
         }
     }
     
@@ -373,11 +392,34 @@ final class UserProfile {
            let scores = try? JSONDecoder().decode([String: Int].self, from: data) {
             userExerciseScores = scores
         }
+        
+        // Load aggregate exercise scores
+        if let data = UserDefaults.standard.data(forKey: "userProfile_aggregateExerciseScores"),
+           let aggregateScores = try? JSONDecoder().decode([String: ExerciseAggregateData].self, from: data) {
+            userAggregateExerciseScores = aggregateScores
+        }
     }
     
     // Computed property to get the count of completed exercises
     var completedExercisesCount: Int {
         return userExerciseScores.count
+    }
+    
+    // Update aggregate exercise data
+    func updateExerciseAggregate(exerciseId: String, score: Int) {
+        // If this exercise doesn't have aggregate data yet, initialize it
+        if userAggregateExerciseScores[exerciseId] == nil {
+            userAggregateExerciseScores[exerciseId] = ExerciseAggregateData(totalScores: 0, totalSubmissions: 0)
+        }
+        
+        // Update the aggregate data
+        userAggregateExerciseScores[exerciseId]?.totalScores += score
+        userAggregateExerciseScores[exerciseId]?.totalSubmissions += 1
+        
+        // Save to UserDefaults
+        saveExerciseScoresToUserDefaults()
+        
+        print("DEBUG: Updated aggregate data for exercise \(exerciseId): total score \(userAggregateExerciseScores[exerciseId]?.totalScores ?? 0), submissions \(userAggregateExerciseScores[exerciseId]?.totalSubmissions ?? 0)")
     }
 }
 

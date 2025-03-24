@@ -424,6 +424,9 @@ extension SubmissionStore {
                        let score = scoringData["score"] as? Int {
                         // Update the ELO score
                         updateELOscore(exerciseId: exerciseId, score: score)
+                        
+                        // Also update the aggregate exercise data
+                        UserProfile.shared.updateExerciseAggregate(exerciseId: exerciseId, score: score)
                     }
                 }
                 return success

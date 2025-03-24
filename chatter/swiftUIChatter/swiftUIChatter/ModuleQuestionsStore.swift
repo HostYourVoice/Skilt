@@ -133,32 +133,6 @@ final class ModuleQuestionsStore {
                             scoringData: scoringData,
                             exerciseId: exerciseId
                         )
-                        
-                        // Convert score and points to Double for percentage calculation
-                        let newTotalSubmissions = question.totalSubmissions + 1
-                        
-                        // Calculate the current total score percentage
-                        let currentTotalScorePercentage = question.averageScorePercentage * Double(question.totalSubmissions)
-                        
-                        // Calculate the new score percentage
-                        let newScorePercentage = Double(score) / Double(question.points)
-                        
-                        // Calculate the new average score percentage
-                        let newAverageScorePercentage = (currentTotalScorePercentage + newScorePercentage) / Double(newTotalSubmissions)
-    
-                        let newDifficulty: Int
-                        if newAverageScorePercentage >= 0.8 {
-                            newDifficulty = 1
-                        } else if newAverageScorePercentage >= 0.6 {
-                            newDifficulty = 2
-                        } else if newAverageScorePercentage >= 0.4 {
-                            newDifficulty = 3
-                        } else if newAverageScorePercentage >= 0.2 {
-                            newDifficulty = 4
-                        } else {
-                            newDifficulty = 5
-                        }
-                        
                     
                              
                     } else {
