@@ -17,6 +17,8 @@ final class SubmissionStore: @unchecked Sendable {
     private(set) var currentStreak: Int = 0
     private(set) var largestStreak: Int = 0
     private var lastSubmissionDate: Date?
+    // Add a flag to prevent recursive getSubmissions calls
+    private var isRefreshingAfterSubmission = false
     
     func getSubmissions() async {
         print("DEBUG: Starting getSubmissions()") // Debug logging
@@ -33,6 +35,8 @@ final class SubmissionStore: @unchecked Sendable {
         defer { // allow subsequent retrieval
             mutex.withLock {
                 self.isRetrieving = false
+                // Reset the refresh flag when getSubmissions completes
+                self.isRefreshingAfterSubmission = false
             }
         }
         
@@ -416,7 +420,13 @@ extension SubmissionStore {
                     print("upsertSubmission: HTTP STATUS: \(httpStatus.statusCode)")
                 } else {
                     // Update streak after successful submission
-                    await getSubmissions() // Refresh submissions to update streak
+                    // Check flag before calling getSubmissions to prevent loops
+                    if !isRefreshingAfterSubmission {
+                        isRefreshingAfterSubmission = true
+                        await getSubmissions() // Refresh submissions to update streak
+                    } else {
+                        print("DEBUG: Skipping getSubmissions to prevent recursive loop")
+                    }
                     
                     // If submission was successful and we have exercise ID and scoring data
                     if let exerciseId = exerciseId, 
