@@ -1206,6 +1206,11 @@ struct LearningTreeView: View {
             let decoder = JSONDecoder()
             let courseData = try decoder.decode(CourseData.self, from: data)
             
+            // Update the UserProfile's totalModules from the metadata
+            let totalModules = courseData.course.metadata.totalModules
+            UserProfile.shared.updateStats(totalModules: totalModules)
+            print("DEBUG: Updated totalModules to \(totalModules)")
+            
             // Create instructor names using category names
             let categoryMap = Dictionary(uniqueKeysWithValues: courseData.course.categories.map { ($0.id, $0.name) })
             

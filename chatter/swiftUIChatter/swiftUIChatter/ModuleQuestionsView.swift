@@ -13,7 +13,7 @@ struct QuestionRow: View {
     @State private var responseText: String = ""
     @State private var selectedOption: Int? = nil
     @State private var showExplanation: Bool = false
-    @State private var isScenarioExpanded: Bool = false
+    @State private var isScenarioExpanded: Bool = true
     @State private var isContentCardsExpanded: Bool = false
     @State private var isResourceCardsExpanded: Bool = false
     
