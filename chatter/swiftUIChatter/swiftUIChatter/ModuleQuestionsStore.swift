@@ -80,64 +80,284 @@ final class ModuleQuestionsStore {
                 // Find the question
                 guard let question = self.questions.first(where: { $0.id == questionId }) else { return }
                 
-                // Generate a random score between 60-100% of max points
                 let maxPoints = question.points
                 let score = Int.random(in: (maxPoints * 6/10)...maxPoints)
                 
-                // Generate feedback
-                let feedback = self.generateFeedback(score: score, maxPoints: maxPoints, questionTitle: question.title)
-                
-                // Update status
-                self.submissionStatuses[questionId] = .completed(score: score, feedback: feedback)
-                
-                // Save to Supabase with scoring data (this is the only submission we'll make)
+                // Create a Task to handle the async feedback generation
                 Task {
-                    // Create the scoring JSON object
-                    let scoringData: [String: Any] = [
-                        "score": score,
-                        "scoreMax": maxPoints,
-                        "feedback": feedback
-                    ]
-                    
-                    // Get the submission text that was previously saved
-                    guard let submissionText = self.submissions[questionId] else { return }
-                    
-                    // Get the user's ID from UserProfile or fallback to ChatterID
-                    let userProfile = UserProfile.shared
-                    let userId = userProfile.userId ?? ChatterID.shared.id
-                    
-                    // Submit to Supabase with scoring data
-                    let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
-
-                    // Get the module ID from the courseData instead of using question.id (UUID)
-                    let exerciseId = self.courseData?.course.modules.first(where: { $0.title == question.title })?.id ?? question.id.uuidString
-
-                    let success = await SubmissionStore.shared.upsertSubmission(
-                        submissionText: submissionWithContext, 
-                        userId: userId,
-                        scoringData: scoringData,
-                        exerciseId: exerciseId
+                    let feedback = await self.generateFeedback(
+                        score: score,
+                        maxPoints: maxPoints,
+                        questionTitle: question.title,
+                        scenario: question.scenario,
+                        rubricPoints: question.rubricPoints,
+                        userResponse: text
                     )
                     
-                    if !success {
-                        print("Failed to save submission with scoring data to Supabase")
+                    // Get AI-generated feedback and score
+                    if let aiResult = await self.generateAIFeedback(
+                        score: score,
+                        maxPoints: maxPoints,
+                        questionTitle: question.title,
+                        scenario: question.scenario,
+                        rubricPoints: question.rubricPoints,
+                        userResponse: text
+                    ) {
+                        // Update status with the complete feedback and AI score
+                        self.submissionStatuses[questionId] = .completed(score: aiResult.aiScore, feedback: feedback)
+                        
+                        // Save to Supabase with scoring data
+                        // Create the scoring JSON object
+                        let scoringData: [String: Any] = [
+                            "score": aiResult.aiScore,
+                            "scoreMax": maxPoints,
+                            "feedback": feedback
+                        ]
+                        
+                        // Get the submission text that was previously saved
+                        guard let submissionText = self.submissions[questionId] else { return }
+                        
+                        // Get the user's ID from UserProfile or fallback to ChatterID
+                        let userProfile = UserProfile.shared
+                        let userId = userProfile.userId ?? ChatterID.shared.id
+                        
+                        // Submit to Supabase with scoring data
+                        let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
+                        
+                        // Get the module ID from the courseData instead of using question.id (UUID)
+                        let exerciseId = self.courseData?.course.modules.first(where: { $0.title == question.title })?.id ?? question.id.uuidString
+                        
+                        let success = await SubmissionStore.shared.upsertSubmission(
+                            submissionText: submissionWithContext, 
+                            userId: userId,
+                            scoringData: scoringData,
+                            exerciseId: exerciseId
+                        )
+                        
+                        if !success {
+                            print("Failed to save submission with scoring data to Supabase")
+                        }
+                    } else {
+                        // Fallback to random score if AI feedback fails
+                        self.submissionStatuses[questionId] = .completed(score: score, feedback: feedback)
+                        
+                        // Save to Supabase with scoring data
+                        let scoringData: [String: Any] = [
+                            "score": score,
+                            "scoreMax": maxPoints,
+                            "feedback": feedback
+                        ]
+                        
+                        // Get the submission text that was previously saved
+                        guard let submissionText = self.submissions[questionId] else { return }
+                        
+                        // Get the user's ID from UserProfile or fallback to ChatterID
+                        let userProfile = UserProfile.shared
+                        let userId = userProfile.userId ?? ChatterID.shared.id
+                        
+                        // Submit to Supabase with scoring data
+                        let submissionWithContext = "\(self.course.name) - \(self.course.code):\n\(submissionText)"
+                        
+                        // Get the module ID from the courseData instead of using question.id (UUID)
+                        let exerciseId = self.courseData?.course.modules.first(where: { $0.title == question.title })?.id ?? question.id.uuidString
+                        
+                        let success = await SubmissionStore.shared.upsertSubmission(
+                            submissionText: submissionWithContext, 
+                            userId: userId,
+                            scoringData: scoringData,
+                            exerciseId: exerciseId
+                        )
+                        
+                        if !success {
+                            print("Failed to save submission with scoring data to Supabase")
+                        }
                     }
                 }
             }
         }
     }
     
-    private func generateFeedback(score: Int, maxPoints: Int, questionTitle: String) -> String {
+    private func generateFeedback(score: Int, maxPoints: Int, questionTitle: String, scenario: String, rubricPoints: [String: Int], userResponse: String) async -> String {
         let percentage = Double(score) / Double(maxPoints)
         
-        if percentage >= 0.9 {
-            return "Excellent work! Your response demonstrates a thorough understanding of the concepts covered in this module."
+        // Build detailed feedback based on rubric points
+        var feedbackParts: [String] = []
+        
+        // Add scenario context
+        //feedbackParts.append("Based on the scenario: \"\(scenario.prefix(100))...\"")
+        
+        // Add overall assessment
+        /*if percentage >= 0.9 {
+            feedbackParts.append("Excellent work! Your response demonstrates a thorough understanding of the concepts and excellent application to the scenario.")
         } else if percentage >= 0.8 {
-            return "Great job! Your response shows good comprehension of the key concepts, with minor areas for improvement."
+            feedbackParts.append("Great job! Your response shows good comprehension and application, with minor areas for improvement.")
         } else if percentage >= 0.7 {
-            return "Good effort! Your submission addresses the main points, but could use more depth in some areas."
+            feedbackParts.append("Good effort! Your submission addresses the main points, but could use more depth in applying concepts to the scenario.")
         } else {
-            return "Your response shows basic understanding, but needs more development. Review the module materials and try again."
+            feedbackParts.append("Your response shows basic understanding, but needs more development in relating concepts to the practical scenario.")
+        }*/
+        
+        // Add rubric-based feedback
+       /* feedbackParts.append("\nDetailed feedback based on rubric:")
+        for (category, points) in rubricPoints {
+            let categoryPercentage = Double(points) / Double(maxPoints / 4)
+            let categoryFeedback = generateCategoryFeedback(category: category, percentage: categoryPercentage)
+            feedbackParts.append("• \(category): \(categoryFeedback)")
+        }*/
+        
+        // Get AI-generated feedback
+        if let aiResult = await generateAIFeedback(score: score, maxPoints: maxPoints, questionTitle: questionTitle, scenario: scenario, rubricPoints: rubricPoints, userResponse: userResponse) {
+            //feedbackParts.append("\nAI-Generated Feedback:")
+            //feedbackParts.append("AI Score: \(aiResult.aiScore)/\(maxPoints)")
+            feedbackParts.append(aiResult.feedback)
+        }
+        
+        return feedbackParts.joined(separator: "\n")
+    }
+    
+    private func generateAIFeedback(score: Int, maxPoints: Int, questionTitle: String, scenario: String, rubricPoints: [String: Int], userResponse: String) async -> (feedback: String, aiScore: Int)? {
+        let encodedApiKey = "c2stc3ZjYWNjdC11SnZYWERIRVVRbTBTMjVGa2pNWDdVN0lJWWF2Z1J0QjI5dWNROFlxOWtBTF9XbjNTdmJraDF2V0U4czhxdmlTbEFBSl94UlNOeVQzQmxia0ZKZFhGbGFYOFFoSlVvMjZiZzVIVzFpcV9jV3g5bmJXWFU1dl84ZVJSMEotUVNIZkFQd3kwVVp5bVowT0Iwb2NxTWw3QVNURDhja0E="
+        
+        guard let apiKeyData = Data(base64Encoded: encodedApiKey),
+              let apiKey = String(data: apiKeyData, encoding: .utf8) else {
+            print("Error: Failed to decode API key")
+            return nil
+        }
+        
+        let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+        
+        // Define the simplified function schema
+        let functionSchema: [String: Any] = [
+            "name": "generate_feedback",
+            "description": "Generate feedback for a student's response",
+            "parameters": [
+                "type": "object",
+                "properties": [
+                    "score": [
+                        "type": "integer",
+                        "description": "The score awarded for the response"
+                    ],
+                    "maxScore": [
+                        "type": "integer",
+                        "description": "The maximum possible score"
+                    ],
+                    "feedback": [
+                        "type": "string",
+                        "description": "Detailed feedback for the student's response"
+                    ]
+                ],
+                "required": ["score", "maxScore", "feedback"]
+            ]
+        ]
+        
+        // Prepare the prompt
+        let prompt = """
+Student's Response:
+\'\(userResponse)\'
+
+Please evaluate this response and provide comprehensive feedback.
+"""
+        
+        // Prepare the request body
+        let requestBody: [String: Any] = [
+            "model": "gpt-4o",
+            "messages": [
+                ["role": "system", "content": """
+You are an expert evaluator assessing student responses to professional scenarios. Your role is to:
+1. Carefully evaluate the student's response against the provided rubric
+2. Consider the specific scenario and question context
+3. Provide detailed, constructive feedback
+4. Award an appropriate score based on the rubric criteria
+
+Current Scenario:
+\(scenario)
+
+Question:
+\(questionTitle)
+
+Max score possible: \(maxPoints)
+
+Rubric Categories and Points:
+\(rubricPoints.map { "• \($0.key): \($0.value)" }.joined(separator: "\n"))
+
+Focus on evaluating:
+- Understanding and application of concepts
+- Practical relevance to the scenario
+- Clarity and organization of the response
+- Creativity and effectiveness of the solution
+"""],
+                ["role": "user", "content": prompt]
+            ],
+            "functions": [functionSchema],
+            "function_call": ["name": "generate_feedback"],
+            "temperature": 0.7,
+            "max_tokens": 1000
+        ]
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            // Log the raw response data
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("OpenAI API Response:")
+                print(responseString)
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                print("Error: Invalid response from OpenAI API")
+                return nil
+            }
+            
+            guard let jsonResponse = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = jsonResponse["choices"] as? [[String: Any]],
+                  let firstChoice = choices.first,
+                  let message = firstChoice["message"] as? [String: Any],
+                  let functionCall = message["function_call"] as? [String: Any],
+                  let arguments = functionCall["arguments"] as? String,
+                  let feedbackData = try? JSONSerialization.jsonObject(with: arguments.data(using: .utf8)!) as? [String: Any] else {
+                print("Error: Invalid JSON response from OpenAI API")
+                return nil
+            }
+            
+            // Extract both feedback and score
+            guard let feedback = feedbackData["feedback"] as? String,
+                  let aiScore = feedbackData["score"] as? Int else {
+                return nil
+            }
+            
+            // Log the extracted feedback and score
+            print("AI Generated Score: \(aiScore)")
+            print("AI Generated Feedback:")
+            print(feedback)
+            
+            return (feedback: feedback, aiScore: aiScore)
+            
+        } catch {
+            print("Error calling OpenAI API: \(error)")
+            return nil
+        }
+    }
+    
+    private func generateCategoryFeedback(category: String, percentage: Double) -> String {
+        switch category {
+        case "Understanding of concepts":
+            return percentage >= 0.8 ? "Strong grasp of core concepts demonstrated." : "Consider reviewing the module materials to strengthen conceptual understanding."
+        case "Application to scenario":
+            return percentage >= 0.8 ? "Excellent practical application to the scenario." : "Try to make more direct connections to the scenario context."
+        case "Clarity and organization":
+            return percentage >= 0.8 ? "Well-structured and clearly presented response." : "Focus on organizing your thoughts more systematically."
+        case "Creativity and effectiveness":
+            return percentage >= 0.8 ? "Creative and effective solution proposed." : "Consider exploring more innovative approaches to the problem."
+        default:
+            return percentage >= 0.8 ? "Well done in this area." : "Room for improvement in this aspect."
         }
     }
     
