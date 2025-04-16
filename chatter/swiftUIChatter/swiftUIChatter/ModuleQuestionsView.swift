@@ -6,6 +6,61 @@
 //
 
 import SwiftUI
+import UIKit
+
+struct CustomTextEditor: UIViewRepresentable {
+    @Binding var text: String
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = .systemFont(ofSize: 16)
+        textView.backgroundColor = .clear
+        textView.textColor = .white
+        // Only correct after space
+        textView.autocorrectionType = .yes
+        textView.smartQuotesType = .no
+        textView.smartDashesType = .no
+        textView.smartInsertDeleteType = .no
+        return textView
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        if uiView.text != text {
+            uiView.text = text
+        }
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: CustomTextEditor
+        
+        init(_ parent: CustomTextEditor) {
+            self.parent = parent
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
+        }
+        
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            // Only apply autocorrect after space
+            if text == " " {
+                return true
+            }
+            // Disable autocorrect for non-space characters
+            textView.autocorrectionType = .no
+            // Re-enable autocorrect after a brief delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                textView.autocorrectionType = .yes
+            }
+            return true
+        }
+    }
+}
 
 struct QuestionRow: View {
     let question: ModuleQuestion
@@ -155,31 +210,33 @@ struct QuestionRow: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Scenario:")
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                         .padding(.bottom, 2)
                     
                     Text(question.scenario)
                         .font(.body)
+                        .foregroundColor(.white)
                         .padding(.bottom, 4)
                     
                     Text("Question:")
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                         .padding(.bottom, 2)
                         .padding(.top, 4)
                     
                     Text(question.question)
                         .font(.body.italic())
+                        .foregroundColor(.white)
                 }
                 .padding()
-                .background(Color.white)
+                .background(Color.clear)
                 .cornerRadius(8)
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                 
                 // Response area
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Your Response:")
                         .font(.subheadline.bold())
+                        .foregroundColor(.white)
                     
                     if let status = store.submissionStatuses[question.id],
                        case .completed(let score, let feedback) = status,
@@ -187,8 +244,8 @@ struct QuestionRow: View {
                         // Show submitted response
                         VStack(alignment: .leading, spacing: 8) {
                             Text(submission)
+                                .foregroundColor(.white)
                                 .padding()
-                                .background(Color.secondary.opacity(0.05))
                                 .cornerRadius(8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             
@@ -197,33 +254,36 @@ struct QuestionRow: View {
                                 HStack {
                                     Text("Score:")
                                         .fontWeight(.bold)
+                                        .foregroundColor(.white)
                                     Text("\(score)/\(question.points) points")
                                         .foregroundColor(.green)
                                 }
                                 
                                 Divider()
+                                    .background(Color.white.opacity(0.3))
                                 
                                 Text("Feedback:")
                                     .fontWeight(.bold)
+                                    .foregroundColor(.white)
                                 Text(feedback)
+                                    .foregroundColor(.white)
                             }
                             .padding()
-                            .background(Color.green.opacity(0.1))
                             .cornerRadius(8)
                         }
                     } else if let status = store.submissionStatuses[question.id], 
                               case .evaluating = status,
                               let submission = store.submissions[question.id] {
-                        // Show submitted response being evaluated
                         VStack(alignment: .center, spacing: 8) {
                             Text(submission)
+                                .foregroundColor(.white)
                                 .padding()
-                                .background(Color.secondary.opacity(0.05))
                                 .cornerRadius(8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             
                             HStack {
                                 ProgressView()
+                                    .tint(.white)
                                 Text("Evaluating your response...")
                                     .foregroundColor(.orange)
                             }
@@ -233,10 +293,9 @@ struct QuestionRow: View {
                     } else if let status = store.submissionStatuses[question.id],
                               case .submitted = status,
                               let submission = store.submissions[question.id] {
-                        // Show submitted response waiting for evaluation
                         Text(submission)
+                            .foregroundColor(.white)
                             .padding()
-                            .background(Color.secondary.opacity(0.05))
                             .cornerRadius(8)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
@@ -250,14 +309,18 @@ struct QuestionRow: View {
                                     .allowsHitTesting(false)
                             }
                             
-                            TextEditor(text: $responseText)
+                            CustomTextEditor(text: $responseText)
                                 .frame(minHeight: 120)
                                 .padding(4)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
                                 )
+                                .contentShape(Rectangle())
+                                .onTapGesture { } // Consume tap gesture to prevent propagation
                         }
+                        .background(Color.clear) // Ensure background doesn't trigger actions
+                        .allowsHitTesting(true)  // Allow interaction with the text editor
                         
                         // Submit button
                         Button(action: {
@@ -274,26 +337,27 @@ struct QuestionRow: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
+                        .buttonStyle(BorderlessButtonStyle()) // Prevent button style from affecting parent views
                         .disabled(responseText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 }
                 .padding()
-                .background(Color.white)
                 .cornerRadius(8)
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
                 
                 // Rubric
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Grading Rubric:")
                         .font(.subheadline.bold())
+                        .foregroundColor(.white)
                     
                     ForEach(Array(question.rubricPoints.keys.sorted()), id: \.self) { criterion in
                         if let points = question.rubricPoints[criterion] {
                             HStack {
                                 Text(criterion)
+                                    .foregroundColor(.white)
                                 Spacer()
                                 Text("\(points) pts")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.8))
                             }
                             .font(.caption)
                             .padding(.vertical, 2)
@@ -301,7 +365,7 @@ struct QuestionRow: View {
                     }
                 }
                 .padding()
-                .background(Color.secondary.opacity(0.05))
+                .background(Color.clear)
                 .cornerRadius(8)
                 
                 // Detailed Rubric Checklist
@@ -309,6 +373,7 @@ struct QuestionRow: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Detailed Evaluation Criteria:")
                             .font(.subheadline.bold())
+                            .foregroundColor(.white)
                             .padding(.top, 8)
                         
                         ForEach(question.checklistItems) { item in
@@ -317,25 +382,29 @@ struct QuestionRow: View {
                                     .foregroundColor(.blue)
                                 Text(item.description)
                                     .font(.caption)
+                                    .foregroundColor(.white)
                             }
                             .padding(.vertical, 2)
                         }
                         
                         if !question.aiFeedbackPoints.isEmpty {
                             Divider()
+                                .background(Color.white.opacity(0.3))
                                 .padding(.vertical, 4)
                             
                             Text("Assessment Focus Areas:")
                                 .font(.caption.bold())
+                                .foregroundColor(.white)
                                 .padding(.top, 4)
                             
                             ForEach(question.aiFeedbackPoints.indices, id: \.self) { index in
                                 HStack(alignment: .top, spacing: 10) {
                                     Text("\(index+1).")
                                         .font(.caption.bold())
-                                        .foregroundColor(.purple)
+                                        .foregroundColor(.blue)
                                     Text(question.aiFeedbackPoints[index])
                                         .font(.caption)
+                                        .foregroundColor(.white)
                                         .italic()
                                 }
                                 .padding(.vertical, 1)
@@ -343,7 +412,7 @@ struct QuestionRow: View {
                         }
                     }
                     .padding()
-                    .background(Color.blue.opacity(0.05))
+                    .background(Color.clear)
                     .cornerRadius(8)
                 }
             }
