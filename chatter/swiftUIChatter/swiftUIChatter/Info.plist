@@ -15,5 +15,9 @@
 	</array>
 	<key>GIDClientID</key>
 	<string>764691104830-r1sgun4nvii575mfad2g0g84lcj749e9.apps.googleusercontent.com</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to convert your speech to text.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need speech recognition permission to convert your voice into text.</string>
 </dict>
 </plist>

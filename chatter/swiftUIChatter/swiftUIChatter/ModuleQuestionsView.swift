@@ -7,6 +7,108 @@
 
 import SwiftUI
 import UIKit
+import Speech
+
+@Observable
+class SpeechRecognizer: NSObject, SFSpeechRecognizerDelegate {
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))!
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let audioEngine = AVAudioEngine()
+    
+    var isRecording = false
+    var transcribedText = ""
+    private var existingText = ""
+    private var latestTranscription = ""
+    
+    override init() {
+        super.init()
+        speechRecognizer.delegate = self
+    }
+    
+    func startRecording(existingText: String, updateText: @escaping (String) -> Void) {
+        self.existingText = existingText
+        self.transcribedText = existingText
+        self.latestTranscription = ""
+        
+        // Request authorization
+        SFSpeechRecognizer.requestAuthorization { authStatus in
+            DispatchQueue.main.async {
+                if authStatus == .authorized {
+                    do {
+                        try self.startRecordingSession(updateText: updateText)
+                    } catch {
+                        print("Recording failed to start: \(error)")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func startRecordingSession(updateText: @escaping (String) -> Void) throws {
+        // Cancel any ongoing tasks
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        
+        // Configure audio session
+        let audioSession = AVAudioSession.sharedInstance()
+        try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        
+        // Create and configure recognition request
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        recognitionRequest?.shouldReportPartialResults = true
+        
+        // Start recognition task
+        recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest!) { result, error in
+            if let result = result {
+                DispatchQueue.main.async {
+                    // Update only the latest transcription
+                    self.latestTranscription = result.bestTranscription.formattedString
+                    
+                    // Combine existing text with new transcription
+                    let finalText = self.existingText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    let newText = self.latestTranscription.trimmingCharacters(in: .whitespacesAndNewlines)
+                    
+                    if finalText.isEmpty {
+                        self.transcribedText = newText
+                    } else {
+                        self.transcribedText = finalText + " " + newText
+                    }
+                    
+                    updateText(self.transcribedText)
+                }
+            }
+            if error != nil {
+                self.stopRecording()
+            }
+        }
+        
+        // Configure audio engine
+        let inputNode = audioEngine.inputNode
+        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+            self.recognitionRequest?.append(buffer)
+        }
+        
+        audioEngine.prepare()
+        try audioEngine.start()
+        isRecording = true
+    }
+    
+    func stopRecording() {
+        audioEngine.stop()
+        audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        isRecording = false
+        
+        // Save the final transcribed text as the existing text for next recording
+        existingText = transcribedText
+    }
+}
 
 struct CustomTextEditor: UIViewRepresentable {
     @Binding var text: String
@@ -64,13 +166,16 @@ struct CustomTextEditor: UIViewRepresentable {
 
 struct QuestionRow: View {
     let question: ModuleQuestion
-    var store: ModuleQuestionsStore
+    @ObservedObject var store: ModuleQuestionsStore
+    @Environment(AudioPlayer.self) private var audioPlayer
+    @State private var speechRecognizer = SpeechRecognizer()
     @State private var responseText: String = ""
     @State private var selectedOption: Int? = nil
     @State private var showExplanation: Bool = false
     @State private var isScenarioExpanded: Bool = true
     @State private var isContentCardsExpanded: Bool = false
     @State private var isResourceCardsExpanded: Bool = false
+    @State private var isAudioPresenting: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -322,6 +427,34 @@ struct QuestionRow: View {
                         .background(Color.clear) // Ensure background doesn't trigger actions
                         .allowsHitTesting(true)  // Allow interaction with the text editor
                         
+                        // Audio recording button
+                        HStack {
+                            Spacer()
+                            Button {
+                                if speechRecognizer.isRecording {
+                                    speechRecognizer.stopRecording()
+                                } else {
+                                    speechRecognizer.startRecording(existingText: responseText) { text in
+                                        responseText = text
+                                    }
+                                }
+                            } label: {
+                                Image(systemName: speechRecognizer.isRecording ? "mic.fill" : "mic")
+                                    .foregroundColor(speechRecognizer.isRecording ? .red : .blue)
+                                    .imageScale(.large)
+                                    .frame(width: 44, height: 44) // Fixed frame for better tap target
+                            }
+                            .buttonStyle(BorderlessButtonStyle()) // Prevent tap area expansion
+                            .contentShape(Rectangle()) // Constrain hit testing to frame
+                        }
+                        .padding(.horizontal)
+                        .frame(height: 44) // Constrain HStack height
+                        
+                        // Audio recording view
+                        .fullScreenCover(isPresented: $isAudioPresenting) {
+                            AudioView(isPresented: $isAudioPresenting)
+                        }
+                        
                         // Submit button
                         Button(action: {
                             store.submitResponse(for: question.id, text: responseText)
@@ -343,6 +476,9 @@ struct QuestionRow: View {
                 }
                 .padding()
                 .cornerRadius(8)
+                .onAppear {
+                    audioPlayer.setupRecorder()
+                }
                 
                 // Rubric
                 VStack(alignment: .leading, spacing: 4) {
@@ -434,13 +570,20 @@ struct QuestionRow: View {
 
 struct ModuleQuestionsView: View {
     let course: Course
-    @State private var store: ModuleQuestionsStore
+    @StateObject private var store: ModuleQuestionsStore
+    @Environment(AudioPlayer.self) private var audioPlayer
     @State private var showingTestAlert = false
     @State private var testSubmissionResult = false
     
+    @State private var responseText = ""
+    @State private var showingFeedback = false
+    @State private var isContentCardsExpanded: Bool = false
+    @State private var isResourceCardsExpanded: Bool = false
+    @State private var isAudioPresenting: Bool = false
+    
     init(course: Course) {
         self.course = course
-        self._store = State(initialValue: ModuleQuestionsStore(course: course))
+        self._store = StateObject(wrappedValue: ModuleQuestionsStore(course: course))
     }
     
     // Test function to directly submit to Supabase
@@ -485,6 +628,7 @@ struct ModuleQuestionsView: View {
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color(question.altRow ?
                                 .systemGray5 : .systemGray6))
+                            .environment(audioPlayer)
                     }
                 }
             }

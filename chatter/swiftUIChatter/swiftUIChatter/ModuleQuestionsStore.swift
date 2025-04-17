@@ -10,14 +10,12 @@ import Foundation
 import SwiftUI
 
 @Observable
-final class ModuleQuestionsStore {
+final class ModuleQuestionsStore: ObservableObject {
+    let course: Course
     private(set) var questions: [ModuleQuestion] = []
-    private(set) var isLoading: Bool = false
-    private(set) var course: Course
-    
-    // Track submissions for each question
     private(set) var submissions: [UUID: String] = [:]
     private(set) var submissionStatuses: [UUID: SubmissionStatus] = [:]
+    private(set) var isLoading = false
     
     // Cached JSON data
     private var courseData: CourseData?
