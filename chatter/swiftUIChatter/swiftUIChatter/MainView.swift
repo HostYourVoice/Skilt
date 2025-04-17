@@ -148,52 +148,38 @@ struct CategoryView: View {
                 }
                 
                 // Dropdown indicator inside the card
-                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
                     .foregroundColor(categoryColor(for: category.name))
                     .font(.system(size: 16, weight: .semibold))
-                    .animation(.spring(), value: isExpanded)
+                    .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isExpanded)
                     .padding(.leading, 4)
             }
             
             // Metrics row
-            HStack(spacing: 20) {
-                // Difficulty metric
-                HStack(spacing: 4) {
-                    Image(systemName: "bolt")
-                        .foregroundColor(.blue)
-                        .font(.footnote)
-                    Text("Difficulty: \(String(format: "%.1f", category.averageDifficulty))")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
+            if !category.courses.isEmpty {
+                HStack(spacing: 16) {
+                    // Average difficulty
+                    Label(
+                        title: { Text(String(format: "%.1f", category.averageDifficulty)) },
+                        icon: { Image(systemName: "star.fill").foregroundColor(.yellow) }
+                    )
+                    .font(.caption)
+                    
+                    // Min ELO required
+                    Label(
+                        title: { Text("\(category.minEloRequired) ELO") },
+                        icon: { Image(systemName: "bolt.fill").foregroundColor(.orange) }
+                    )
+                    .font(.caption)
                 }
-                
-                // ELO metric
-                HStack(spacing: 4) {
-                    Image(systemName: "trophy")
-                        .foregroundColor(.orange)
-                        .font(.footnote)
-                    Text("Min ELO: \(category.minEloRequired)")
-                        .font(.footnote)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
+                .foregroundColor(.secondary)
+                .padding(.top, 4)
             }
-            
-            // Visual difficulty indicator
-            HStack(spacing: 2) {
-                ForEach(1...4, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(index <= Int(category.averageDifficulty.rounded()) ? categoryColor(for: category.name) : Color.secondary.opacity(0.15))
-                        .frame(width: 36, height: 5)
-                }
-            }
-            .padding(.top, 4)
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 8)
-        .background(categoryColor(for: category.name).opacity(0.1))
-        .cornerRadius(12)
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(10)
     }
     
     // Return appropriate icon for category
@@ -1117,7 +1103,7 @@ struct LearningTreeView: View {
                         CategoryView(category: category, sortOption: sortOption, isExpanded: isExpanded)
                             .contentShape(Rectangle())
                             .onTapGesture {
-                                withAnimation {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                                     if isExpanded {
                                         expandedCategories.remove(category.id)
                                     } else {
@@ -1145,7 +1131,10 @@ struct LearningTreeView: View {
                             .padding(.bottom, 4)
                             .padding(.horizontal, 4)
                             .background(Color(.systemGroupedBackground))
-                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .top)),
+                                removal: .opacity.combined(with: .move(edge: .top))
+                            ))
                         }
                     }
                     .padding(.vertical, 2)
