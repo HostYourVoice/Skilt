@@ -277,12 +277,15 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"swiftUIChatter/Preview Content\"";
-				DEVELOPMENT_TEAM = KDNUCT64U4;
+				DEVELOPMENT_TEAM = 9DPVZ5ZY3X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = swiftUIChatter/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need camera access to scan your handwritten answers";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "to access ChatterID in Keychain";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "to record audio chatt";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to convert your speech to text.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need photo library access to import images of your handwritten answers";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition permission to convert your voice into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -294,7 +297,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = edu.umich.amulya.swiftUIChatter;
+				PRODUCT_BUNDLE_IDENTIFIER = edu.umich.xiaofx.swiftUIChatter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -310,12 +313,15 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"swiftUIChatter/Preview Content\"";
-				DEVELOPMENT_TEAM = KDNUCT64U4;
+				DEVELOPMENT_TEAM = 9DPVZ5ZY3X;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = swiftUIChatter/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need camera access to scan your handwritten answers";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "to access ChatterID in Keychain";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "to record audio chatt";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We need access to your microphone to convert your speech to text.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need photo library access to import images of your handwritten answers";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "We need speech recognition permission to convert your voice into text.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -327,7 +333,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = edu.umich.amulya.swiftUIChatter;
+				PRODUCT_BUNDLE_IDENTIFIER = edu.umich.xiaofx.swiftUIChatter;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;

@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import Speech
+import Vision
 
 @Observable
 class SpeechRecognizer: NSObject, SFSpeechRecognizerDelegate {
@@ -110,6 +111,44 @@ class SpeechRecognizer: NSObject, SFSpeechRecognizerDelegate {
     }
 }
 
+@Observable
+class HandwritingRecognizer: NSObject {
+    private let textRecognitionRequest = VNRecognizeTextRequest()
+    var isProcessing = false
+    
+    override init() {
+        super.init()
+        textRecognitionRequest.recognitionLevel = .accurate
+        textRecognitionRequest.usesLanguageCorrection = true
+    }
+    
+    func recognizeText(from image: UIImage, completion: @escaping (String) -> Void) {
+        guard let cgImage = image.cgImage else { return }
+        
+        isProcessing = true
+        
+        let requestHandler = VNImageRequestHandler(cgImage: cgImage)
+        textRecognitionRequest.revision = VNRecognizeTextRequestRevision2
+        
+        do {
+            try requestHandler.perform([textRecognitionRequest])
+            if let observations = textRecognitionRequest.results {
+                let recognizedStrings = observations.compactMap { observation in
+                    observation.topCandidates(1).first?.string
+                }
+                let combinedText = recognizedStrings.joined(separator: " ")
+                DispatchQueue.main.async {
+                    completion(combinedText)
+                    self.isProcessing = false
+                }
+            }
+        } catch {
+            print("Error recognizing text: \(error)")
+            isProcessing = false
+        }
+    }
+}
+
 struct CustomTextEditor: UIViewRepresentable {
     @Binding var text: String
     
@@ -164,11 +203,46 @@ struct CustomTextEditor: UIViewRepresentable {
     }
 }
 
+struct ImagePickerView: UIViewControllerRepresentable {
+    @Binding var selectedImage: UIImage?
+    @Environment(\.presentationMode) var presentationMode
+    var sourceType: UIImagePickerController.SourceType
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = sourceType
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePickerView
+        
+        init(_ parent: ImagePickerView) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.selectedImage = image
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+    }
+}
+
 struct QuestionRow: View {
     let question: ModuleQuestion
     @ObservedObject var store: ModuleQuestionsStore
     @Environment(AudioPlayer.self) private var audioPlayer
     @State private var speechRecognizer = SpeechRecognizer()
+    @State private var handwritingRecognizer = HandwritingRecognizer()
     @State private var responseText: String = ""
     @State private var selectedOption: Int? = nil
     @State private var showExplanation: Bool = false
@@ -176,6 +250,9 @@ struct QuestionRow: View {
     @State private var isContentCardsExpanded: Bool = false
     @State private var isResourceCardsExpanded: Bool = false
     @State private var isAudioPresenting: Bool = false
+    @State private var showingImagePicker = false
+    @State private var sourceType: UIImagePickerController.SourceType = .camera
+    @State private var selectedImage: UIImage?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -430,6 +507,21 @@ struct QuestionRow: View {
                         // Audio recording button
                         HStack {
                             Spacer()
+                            
+                            // Handwriting button
+                            Button {
+                                sourceType = .camera
+                                showingImagePicker = true
+                            } label: {
+                                Image(systemName: "doc.text.viewfinder")
+                                    .foregroundColor(.blue)
+                                    .imageScale(.large)
+                                    .frame(width: 44, height: 44)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            .contentShape(Rectangle())
+                            
+                            // Speech button
                             Button {
                                 if speechRecognizer.isRecording {
                                     speechRecognizer.stopRecording()
@@ -442,13 +534,25 @@ struct QuestionRow: View {
                                 Image(systemName: speechRecognizer.isRecording ? "mic.fill" : "mic")
                                     .foregroundColor(speechRecognizer.isRecording ? .red : .blue)
                                     .imageScale(.large)
-                                    .frame(width: 44, height: 44) // Fixed frame for better tap target
+                                    .frame(width: 44, height: 44)
                             }
-                            .buttonStyle(BorderlessButtonStyle()) // Prevent tap area expansion
-                            .contentShape(Rectangle()) // Constrain hit testing to frame
+                            .buttonStyle(BorderlessButtonStyle())
+                            .contentShape(Rectangle())
                         }
                         .padding(.horizontal)
-                        .frame(height: 44) // Constrain HStack height
+                        .frame(height: 44)
+                        
+                        // Add sheet for image picker
+                        .sheet(isPresented: $showingImagePicker) {
+                            ImagePickerView(selectedImage: $selectedImage, sourceType: sourceType)
+                        }
+                        .onChange(of: selectedImage) { newImage in
+                            if let image = newImage {
+                                handwritingRecognizer.recognizeText(from: image) { recognizedText in
+                                    responseText = responseText + (responseText.isEmpty ? "" : " ") + recognizedText
+                                }
+                            }
+                        }
                         
                         // Audio recording view
                         .fullScreenCover(isPresented: $isAudioPresenting) {
