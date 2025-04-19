@@ -1,0 +1,120 @@
+Testing Progression System:
+--------------------------------------------------
+
+Testing user: Test User 1 (Initial ELO: 240)
+  Completed Introduction:
+    - ELO gained: 4
+    - New ELO: 244
+    - Items completed: 1/2
+    - Time taken: 2:43:00
+    - Attempt #: 1
+  Completed Intermediate Concepts:
+    - ELO gained: 91
+    - New ELO: 335
+    - Items completed: 3/3
+    - Time taken: 2:58:00
+    - Attempt #: 1
+  Completed Expert Techniques:
+    - ELO gained: 273
+    - New ELO: 608
+    - Items completed: 4/4
+    - Time taken: 0:53:00
+    - Attempt #: 1
+
+Testing user: Test User 2 (Initial ELO: 177)
+  Completed Introduction:
+    - ELO gained: 5
+    - New ELO: 182
+    - Items completed: 1/2
+    - Time taken: 0:49:00
+    - Attempt #: 1
+  Completed Intermediate Concepts:
+    - ELO gained: 44
+    - New ELO: 226
+    - Items completed: 2/3
+    - Time taken: 1:00:00
+    - Attempt #: 1
+  Skipped Expert Techniques - ELO requirement (250) not met (User ELO: 226)
+
+Testing user: Test User 3 (Initial ELO: 150)
+  Completed Introduction:
+    - ELO gained: 15
+    - New ELO: 165
+    - Items completed: 2/2
+    - Time taken: 2:29:00
+    - Attempt #: 1
+  Completed Intermediate Concepts:
+    - ELO gained: 100
+    - New ELO: 265
+    - Items completed: 3/3
+    - Time taken: 0:52:00
+    - Attempt #: 1
+  Completed Expert Techniques:
+    - ELO gained: 155
+    - New ELO: 420
+    - Items completed: 3/4
+    - Time taken: 2:55:00
+    - Attempt #: 1
+
+Testing user: Test User 4 (Initial ELO: 168)
+  Completed Introduction:
+    - ELO gained: 13
+    - New ELO: 181
+    - Items completed: 2/2
+    - Time taken: 2:51:00
+    - Attempt #: 1
+  Completed Intermediate Concepts:
+    - ELO gained: 100
+    - New ELO: 281
+    - Items completed: 3/3
+    - Time taken: 0:48:00
+    - Attempt #: 1
+  Completed Expert Techniques:
+    - ELO gained: 170
+    - New ELO: 451
+    - Items completed: 3/4
+    - Time taken: 2:18:00
+    - Attempt #: 1
+
+Testing user: Test User 5 (Initial ELO: 230)
+  Completed Introduction:
+    - ELO gained: 5
+    - New ELO: 235
+    - Items completed: 1/2
+    - Time taken: 0:40:00
+    - Attempt #: 1
+  Completed Intermediate Concepts:
+    - ELO gained: 44
+    - New ELO: 279
+    - Items completed: 2/3
+    - Time taken: 1:47:00
+    - Attempt #: 1
+  Completed Expert Techniques:
+    - ELO gained: 273
+    - New ELO: 552
+    - Items completed: 4/4
+    - Time taken: 1:57:00
+    - Attempt #: 1
+
+Final Results:
+--------------------------------------------------
+Test User 1:
+  Final ELO: 608
+  Modules completed: 3 (mod1, mod2, mod3)
+  Total attempts: 3
+Test User 2:
+  Final ELO: 226
+  Modules completed: 2 (mod1, mod2)
+  Total attempts: 2
+Test User 3:
+  Final ELO: 420
+  Modules completed: 3 (mod1, mod2, mod3)
+  Total attempts: 3
+Test User 4:
+  Final ELO: 451
+  Modules completed: 3 (mod1, mod2, mod3)
+  Total attempts: 3
+Test User 5:
+  Final ELO: 552
+  Modules completed: 3 (mod1, mod2, mod3)
+  Total attempts: 3

@@ -1,0 +1,97 @@
+Testing Progression System:
+--------------------------------------------------
+
+Testing user: Test User 1 (Initial ELO: 100)
+  Completed Introduction:
+    - ELO gained: 13
+    - New ELO: 113
+    - Items completed: 2/2
+    - Time taken: 2:44:00
+    - Attempt #: 1
+  Skipped Intermediate Concepts - ELO requirement (120) not met (User ELO: 113)
+  Skipped Expert Techniques - ELO requirement (250) not met (User ELO: 113)
+
+Testing user: Test User 2 (Initial ELO: 100)
+  Completed Introduction:
+    - ELO gained: 15
+    - New ELO: 115
+    - Items completed: 2/2
+    - Time taken: 1:25:00
+    - Attempt #: 1
+  Skipped Intermediate Concepts - ELO requirement (120) not met (User ELO: 115)
+  Skipped Expert Techniques - ELO requirement (250) not met (User ELO: 115)
+
+Testing user: Test User 3 (Initial ELO: 100)
+  Completed Introduction:
+    - ELO gained: 5
+    - New ELO: 105
+    - Items completed: 1/2
+    - Time taken: 2:14:00
+    - Attempt #: 1
+  Skipped Intermediate Concepts - ELO requirement (120) not met (User ELO: 105)
+  Skipped Expert Techniques - ELO requirement (250) not met (User ELO: 105)
+
+Testing user: Test User 4 (Initial ELO: 100)
+  Completed Introduction:
+    - ELO gained: 15
+    - New ELO: 115
+    - Items completed: 2/2
+    - Time taken: 1:18:00
+    - Attempt #: 1
+  -- Simulating second attempt for Introduction --
+    - ELO gained (retry): 11
+    - New ELO: 126
+    - Items completed (retry): 2/2
+    - Time taken (retry): 1:20:00
+    - Attempt #: 2
+  Completed Intermediate Concepts:
+    - ELO gained: 100
+    - New ELO: 226
+    - Items completed: 3/3
+    - Time taken: 1:19:00
+    - Attempt #: 1
+  -- Simulating second attempt for Intermediate Concepts --
+    - ELO gained (retry): 34
+    - New ELO: 260
+    - Items completed (retry): 2/3
+    - Time taken (retry): 1:48:00
+    - Attempt #: 2
+  Completed Expert Techniques:
+    - ELO gained: 155
+    - New ELO: 415
+    - Items completed: 3/4
+    - Time taken: 2:55:00
+    - Attempt #: 1
+
+Testing user: Test User 5 (Initial ELO: 100)
+  Completed Introduction:
+    - ELO gained: 15
+    - New ELO: 115
+    - Items completed: 2/2
+    - Time taken: 1:53:00
+    - Attempt #: 1
+  Skipped Intermediate Concepts - ELO requirement (120) not met (User ELO: 115)
+  Skipped Expert Techniques - ELO requirement (250) not met (User ELO: 115)
+
+Final Results:
+--------------------------------------------------
+Test User 1:
+  Final ELO: 113
+  Modules completed: 1 (mod1)
+  Total attempts: 1
+Test User 2:
+  Final ELO: 115
+  Modules completed: 1 (mod1)
+  Total attempts: 1
+Test User 3:
+  Final ELO: 105
+  Modules completed: 1 (mod1)
+  Total attempts: 1
+Test User 4:
+  Final ELO: 415
+  Modules completed: 3 (mod1, mod2, mod3)
+  Total attempts: 5
+Test User 5:
+  Final ELO: 115
+  Modules completed: 1 (mod1)
+  Total attempts: 1

@@ -998,6 +998,15 @@ struct LearningTreeView: View {
                     .padding(.top, 10)
                     .padding(.bottom, 10)
                 
+                // Content Ranking
+                ContentRankingView(
+                    courses: courses,
+                    userEloRating: UserProfile.shared.eloRating,
+                    onCourseSelected: { course in
+                        selectedCourse = course
+                    }
+                )
+                
                 // Course tree
                 if filteredCategories.isEmpty {
                     contentUnavailableView
@@ -1364,6 +1373,165 @@ struct LearningTreeView: View {
             course.eloRequired <= userProfile.eloRating &&
             userProfile.userExerciseScores[course.moduleId] == nil
         }.map { $0.moduleId })
+    }
+}
+
+// Content Ranking View
+struct ContentRankingView: View {
+    let courses: [Course]
+    let userEloRating: Int
+    let onCourseSelected: (Course) -> Void
+    
+    private var recommendedCourses: [Course] {
+        // Filter courses that are within user's ELO range (±50 points)
+        let eloRange = 50
+        let availableCourses = courses.filter { course in
+            let eloDiff = abs(course.eloRequired - userEloRating)
+            return eloDiff <= eloRange
+        }
+        
+        // Sort by completion rate (using a mock completion rate for now)
+        return availableCourses.sorted { course1, course2 in
+            let completionRate1 = UserProfile.shared.userExerciseScores[course1.moduleId] != nil ? 1.0 : 0.0
+            let completionRate2 = UserProfile.shared.userExerciseScores[course2.moduleId] != nil ? 1.0 : 0.0
+            return completionRate1 > completionRate2
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
+            HStack {
+                Text("RECOMMENDED FOR YOU")
+                    .textCase(.uppercase)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                // ELO indicator
+                HStack(spacing: 4) {
+                    Image(systemName: "trophy.fill")
+                        .foregroundColor(.orange)
+                        .font(.caption)
+                    Text("Your ELO: \(userEloRating)")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
+            
+            // Recommended courses
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(recommendedCourses.prefix(5)) { course in
+                        RecommendedCourseCard(course: course, onTap: {
+                            onCourseSelected(course)
+                        })
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+// Recommended Course Card
+struct RecommendedCourseCard: View {
+    let course: Course
+    let onTap: () -> Void
+    
+    private var completionRate: Double {
+        UserProfile.shared.userExerciseScores[course.moduleId] != nil ? 1.0 : 0.0
+    }
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Course icon and completion rate
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(difficultyColor().opacity(0.9))
+                            .frame(width: 40, height: 40)
+                        
+                        Image(systemName: difficultyIcon())
+                            .foregroundColor(.white)
+                            .font(.system(size: 16))
+                    }
+                    
+                    Spacer()
+                    
+                    // Completion rate indicator
+                    if completionRate > 0 {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                            .font(.system(size: 20))
+                    }
+                }
+                
+                // Course info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(course.name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .lineLimit(2)
+                    
+                    Text(course.code)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    // Difficulty indicator
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt")
+                            .foregroundColor(.blue)
+                            .font(.caption2)
+                        Text("\(course.difficulty)/\(course.maxDifficulty)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            .frame(width: 200)
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(12)
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        }
+    }
+    
+    // Color based on difficulty
+    private func difficultyColor() -> Color {
+        let ratio = Double(course.difficulty) / Double(course.maxDifficulty)
+        switch ratio {
+        case 0..<0.3:
+            return .green
+        case 0.3..<0.6:
+            return .blue
+        case 0.6..<0.8:
+            return .orange
+        default:
+            return .red
+        }
+    }
+    
+    // Icon based on difficulty
+    private func difficultyIcon() -> String {
+        let ratio = Double(course.difficulty) / Double(course.maxDifficulty)
+        switch ratio {
+        case 0..<0.3:
+            return "1.circle"
+        case 0.3..<0.6:
+            return "2.circle"
+        case 0.6..<0.8:
+            return "3.circle"
+        default:
+            return "bolt"
+        }
     }
 }
 

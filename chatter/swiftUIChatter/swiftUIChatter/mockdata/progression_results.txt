@@ -1,0 +1,60 @@
+Testing Progression System:
+--------------------------------------------------
+
+Testing user: Test User 1 (Initial ELO: 100)
+  Completed Professor Recommendation Request:
+    - ELO gained: 18
+    - New ELO: 118
+    - Items completed: 5/5
+    - Time taken: 2:51:00
+
+Testing user: Test User 2 (Initial ELO: 100)
+  Completed Professor Recommendation Request:
+    - ELO gained: 18
+    - New ELO: 118
+    - Items completed: 5/5
+    - Time taken: 2:44:00
+
+Testing user: Test User 3 (Initial ELO: 100)
+  Completed Professor Recommendation Request:
+    - ELO gained: 11
+    - New ELO: 111
+    - Items completed: 4/5
+    - Time taken: 2:16:00
+
+Testing user: Test User 4 (Initial ELO: 100)
+  Completed Professor Recommendation Request:
+    - ELO gained: 6
+    - New ELO: 106
+    - Items completed: 3/5
+    - Time taken: 1:46:00
+
+Testing user: Test User 5 (Initial ELO: 100)
+  Completed Professor Recommendation Request:
+    - ELO gained: 6
+    - New ELO: 106
+    - Items completed: 3/5
+    - Time taken: 1:15:00
+
+Final Results:
+--------------------------------------------------
+Test User 1:
+  Final ELO: 118
+  Modules completed: 1
+  Total attempts: 1
+Test User 2:
+  Final ELO: 118
+  Modules completed: 1
+  Total attempts: 1
+Test User 3:
+  Final ELO: 111
+  Modules completed: 1
+  Total attempts: 1
+Test User 4:
+  Final ELO: 106
+  Modules completed: 1
+  Total attempts: 1
+Test User 5:
+  Final ELO: 106
+  Modules completed: 1
+  Total attempts: 1
