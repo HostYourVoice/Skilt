@@ -22,6 +22,8 @@ final class ChatterID: @unchecked Sendable {
     }
     
     #if targetEnvironment(simulator)
+    // Skip authentication for simulator to avoid passcode prompt
+    private let skipSimulatorAuthentication = true
     private let auth = LAContext()
     #endif
     
@@ -32,7 +34,10 @@ final class ChatterID: @unchecked Sendable {
         }
 
         #if targetEnvironment(simulator)
-        guard let _ = try? await auth.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "to allow simulator to access ChatterID in KeyChain") else { return }
+        // Skip authentication for simulator to avoid passcode prompt
+        if !skipSimulatorAuthentication {
+            guard let _ = try? await auth.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "to allow simulator to access ChatterID in KeyChain") else { return }
+        }
         #endif
 
         let searchFor: [CFString: Any] = [
@@ -86,7 +91,10 @@ final class ChatterID: @unchecked Sendable {
 
     func save() async {
         #if targetEnvironment(simulator)
-        guard let _ = try? await auth.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "to allow simulator to access ChatterID in KeyChain") else { return }
+        // Skip authentication for simulator to avoid passcode prompt
+        if !skipSimulatorAuthentication {
+            guard let _ = try? await auth.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "to allow simulator to access ChatterID in KeyChain") else { return }
+        }
         #endif
         
         let df = DateFormatter()

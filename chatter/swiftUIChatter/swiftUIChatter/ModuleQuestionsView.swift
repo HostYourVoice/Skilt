@@ -253,6 +253,7 @@ struct QuestionRow: View {
     @State private var showingImagePicker = false
     @State private var sourceType: UIImagePickerController.SourceType = .camera
     @State private var selectedImage: UIImage?
+    @State private var isProcessingCleanup: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -442,7 +443,7 @@ struct QuestionRow: View {
                                 }
                                 
                                 Divider()
-                                    .background(Color.primary.opacity(0.3))
+                                    .background(Color.gray.opacity(0.3))
                                 
                                 Text("Feedback:")
                                     .fontWeight(.bold)
@@ -507,6 +508,28 @@ struct QuestionRow: View {
                         // Audio recording button
                         HStack {
                             Spacer()
+                            
+                            // AI Text Cleanup button
+                            Button {
+                                generateAICleanup()
+                            } label: {
+                                Image(systemName: "sparkle")
+                                    .foregroundColor(isProcessingCleanup ? .gray : .blue)
+                                    .imageScale(.large)
+                                    .frame(width: 44, height: 44)
+                                    .overlay(
+                                        Group {
+                                            if isProcessingCleanup {
+                                                ProgressView()
+                                                    .scaleEffect(0.7)
+                                                    .tint(.blue)
+                                            }
+                                        }
+                                    )
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            .contentShape(Rectangle())
+                            .disabled(isProcessingCleanup || responseText.isEmpty)
                             
                             // Handwriting button
                             Button {
@@ -629,7 +652,7 @@ struct QuestionRow: View {
                         
                         if !question.aiFeedbackPoints.isEmpty {
                             Divider()
-                                .background(Color.primary.opacity(0.3))
+                                .background(Color.gray.opacity(0.3))
                                 .padding(.vertical, 4)
                             
                             Text("Assessment Focus Areas:")
@@ -669,6 +692,73 @@ struct QuestionRow: View {
                 }
             }
         }
+    }
+    
+    func generateAICleanup() {
+        guard !responseText.isEmpty && !isProcessingCleanup else { return }
+        
+        isProcessingCleanup = true
+        
+        // Use the same encoded API key approach as in ModuleQuestionsStore
+        let encodedApiKey = "c2stc3ZjYWNjdC11SnZYWERIRVVRbTBTMjVGa2pNWDdVN0lJWWF2Z1J0QjI5dWNROFlxOWtBTF9XbjNTdmJraDF2V0U4czhxdmlTbEFBSl94UlNOeVQzQmxia0ZKZFhGbGFYOFFoSlVvMjZiZzVIVzFpcV9jV3g5bmJXWFU1dl84ZVJSMEotUVNIZkFQd3kwVVp5bVowT0Iwb2NxTWw3QVNURDhja0E="
+        
+        guard let apiKeyData = Data(base64Encoded: encodedApiKey),
+              let apiKey = String(data: apiKeyData, encoding: .utf8) else {
+            print("Error: Failed to decode API key")
+            isProcessingCleanup = false
+            return
+        }
+        
+        let headers = ["Content-Type": "application/json"]
+        let parameters: [String: Any] = [
+            "model": "gpt-4o",
+            "messages": [
+                ["role": "system", "content": "You are a helpful assistant. Clean up the following text by improving grammar, punctuation, and clarity without changing the meaning. But don't change any of the text core sentences and dont add new, just help me format it for an email"],
+                ["role": "user", "content": responseText]
+            ],
+            "temperature": 0.7
+        ]
+        
+        guard let postData = try? JSONSerialization.data(withJSONObject: parameters) else {
+            isProcessingCleanup = false
+            return
+        }
+        
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            isProcessingCleanup = false
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.allHTTPHeaderFields = headers
+        request.httpBody = postData
+        
+        // Use the decoded API key
+        request.allHTTPHeaderFields?["Authorization"] = "Bearer \(apiKey)"
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                defer { isProcessingCleanup = false }
+                
+                guard let data = data, error == nil else {
+                    print("Error: \(error?.localizedDescription ?? "Unknown error")")
+                    return
+                }
+                
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let choices = json["choices"] as? [[String: Any]],
+                   let firstChoice = choices.first,
+                   let message = firstChoice["message"] as? [String: Any],
+                   let content = message["content"] as? String {
+                    responseText = content
+                } else {
+                    print("Failed to parse API response")
+                }
+            }
+        }
+        
+        task.resume()
     }
 }
 

@@ -358,11 +358,18 @@ final class UserProfile {
     
     // Add method to update exercise scores and recalculate ELO rating
     func updateExerciseScore(exerciseId: String, score: Int) {
+        // Create an adjusted score that boosts it by the user's streak
+        // adjustedScore = Math.ceiling(score * (1 + streak/100))
+        let streakBonus = Double(currentStreak) / 100.0
+        let adjustedScore = Int(ceil(Double(score) * (1.0 + streakBonus)))
+        
+        print("DEBUG: Original score: \(score), Streak: \(currentStreak), Adjusted score: \(adjustedScore)")
+        
         // Update the score for this exercise
-        userExerciseScores[exerciseId] = score
+        userExerciseScores[exerciseId] = adjustedScore
         
         // Update aggregate scores for this exercise
-        updateAggregateScore(exerciseId: exerciseId, score: score)
+        updateAggregateScore(exerciseId: exerciseId, score: adjustedScore)
         
         // Calculate total ELO score (minimum at 100)
         let totalScore = userExerciseScores.values.reduce(0, +) + 100
@@ -371,8 +378,8 @@ final class UserProfile {
         // Update ELO rating
         updateStats(eloRating: newEloRating)
         
-        print("DEBUG: Updated ELO score to \(newEloRating) after exercise \(exerciseId) with score \(score)")
-        print("DEBUG: Current exercise scores: \(userExerciseScores)")
+        print("DEBUG: Updated ELO score to \(newEloRating) after exercise \(exerciseId) with score \(score) and adjustedScore TYG: \(adjustedScore)")
+        print("DEBUG: Current exercise scores TYG: \(userExerciseScores)")
         
         // Save exercise scores to UserDefaults
         saveExerciseScoresToUserDefaults()

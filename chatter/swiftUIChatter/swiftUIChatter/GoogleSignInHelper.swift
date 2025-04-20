@@ -60,6 +60,17 @@ class GoogleSignInHelper {
     
     // Restore previous sign-in
     func restorePreviousSignIn(completion: @escaping (Bool) -> Void) {
+        // Check user preference for automatic sign-in
+        let shouldAutoSignIn = UserDefaults.standard.bool(forKey: "EnableAutoSignIn")
+        
+        // If auto sign-in is disabled, immediately return false
+        if !shouldAutoSignIn {
+            print("Auto sign-in is disabled in preferences")
+            completion(false)
+            return
+        }
+        
+        // Otherwise proceed with normal restoration
         GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
             if let error = error {
                 print("Error restoring sign-in: \(error.localizedDescription)")
