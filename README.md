@@ -1,5 +1,13 @@
-# EECS 441 Wordsmith Mobile Team
+# EECS 441 - Wordsmith Mobile
 
-## Team Members
+| Demo Video |  Wiki |  Trello  |
+|:-----:|:-----:|:--------:|
+|[<img src="https://eecs441.eecs.umich.edu/img/admin/video.png">][demo_page]|[<img src="https://eecs441.eecs.umich.edu/img/admin/wiki.png">][wiki_page]|[<img src="https://eecs441.eecs.umich.edu/img/admin/trello.png">][process_page]|
 
-<img width="525" alt="Screenshot 2025-03-18 at 12 15 01 AM" src="https://github.com/user-attachments/assets/51aabf7e-896a-4fb6-a7f5-d372f37999b8" />
+![poster](./poster.png)
+![team](./team.png)
+
+
+[demo_page]: https://youtu.be/SOMgoDBU5QQ
+[wiki_page]: https://github.com/HostYourVoice/Skilt/wiki
+[process_page]: https://trello.com/b/0lL1Fs4H/wordsmith
